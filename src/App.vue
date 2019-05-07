@@ -1,12 +1,33 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+      <router-link :to="{ name: 'home' }">Home</router-link> |
+      <router-link :to="{ name: 'about' }">About</router-link> |
+      <router-link :to="{ name: 'dashboard' }">Dashboard</router-link> |
+      <router-link v-if="!isLoggedIn" :to="{ name: 'sign-in' }">Sign In</router-link>
+      <button v-if="isLoggedIn" @click.prevent="logout">Sign Out</button>
     </div>
     <router-view/>
   </div>
 </template>
+
+<script>
+import auth from '@/firebase/auth/index'
+import { mapState, mapGetters } from 'vuex'
+
+export default {
+  computed: {
+    ...mapState('user', ['user']),
+    ...mapGetters('user', ['isLoggedIn'])
+  },
+  methods: {
+    logout () {
+      let loggedout = auth.logout()
+      console.log(loggedout)
+    }
+  }
+}
+</script>
 
 <style lang="scss">
 #app {

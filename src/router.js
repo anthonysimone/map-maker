@@ -2,9 +2,11 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
 
+import auth from '@/firebase/auth/index'
+
 Vue.use(Router)
 
-export default new Router({
+export const router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
   routes: [
@@ -20,6 +22,39 @@ export default new Router({
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import(/* webpackChunkName: "about" */ './views/About.vue')
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('./views/Dashboard.vue'),
+      meta: {
+        requireAuth: true
+      }
+    },
+    {
+      path: '/sign-in',
+      name: 'sign-in',
+      component: () => import('./views/SignIn.vue')
+    },
+    {
+      path: '/404',
+      name: 'error404',
+      component: () => import('./views/Error404.vue')
+    },
+    {
+      path: '*',
+      redirect: '/404'
     }
   ]
+})
+
+router.beforeEach((to, from, next) => {
+  let currentUser = auth.user()
+  let requireAuth = to.matched.some(record => record.meta.requireAuth)
+  let guestOnly = to.matched.some(record => record.meta.guestOnly)
+  console.log('beforeEach router event', currentUser)
+
+  if (requireAuth && !currentUser) next('sign-in')
+  else if (guestOnly && currentUser) next('dashboard')
+  else next()
 })

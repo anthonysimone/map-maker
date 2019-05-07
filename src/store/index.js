@@ -1,0 +1,33 @@
+import Vue from 'vue'
+import Vuex from 'vuex'
+import createPersistedState from 'vuex-persistedstate'
+import { vuexfireMutations, firestoreAction } from 'vuexfire'
+
+import user from './modules/user'
+import item from './modules/item'
+import map from './modules/map'
+import todo from './modules/todo'
+
+Vue.use(Vuex)
+
+export default new Vuex.Store({
+  state: {
+
+  },
+  plugins: [createPersistedState({
+    key: 'vuex-map-maker',
+    paths: ['user', 'item', 'map']
+  })],
+  mutations: {
+    ...vuexfireMutations
+  },
+  actions: {
+
+  },
+  modules: {
+    user,
+    item,
+    map,
+    todo
+  }
+})
