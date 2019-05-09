@@ -32,6 +32,14 @@ export const router = new Router({
       }
     },
     {
+      path: '/map/:id',
+      name: 'map-detail',
+      component: () => import('./views/MapDetail.vue'),
+      meta: {
+        requireAuth: true
+      }
+    },
+    {
       path: '/sign-in',
       name: 'sign-in',
       component: () => import('./views/SignIn.vue')

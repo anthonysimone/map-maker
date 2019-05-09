@@ -6,8 +6,10 @@ import store from '@/store'
 import auth from '@/firebase/auth/index'
 // import db from '@/firebase/firestore/index'
 
+import VModal from 'vue-js-modal'
+
 Vue.config.productionTip = false
-// Vue.use(db);
+Vue.use(VModal, { dialog: true, dynamic: true })
 
 new Vue({
   router,

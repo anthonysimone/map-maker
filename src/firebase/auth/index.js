@@ -46,7 +46,7 @@ const auth = {
         Users.getUser(user.uid).then((querySnapshot) => {
           if (querySnapshot.exists) {
             this.context.$store.dispatch('user/setCurrentUserProfile', querySnapshot.data())
-            // this.context.$store.dispatch('visualization/setVisualizationsByUser', querySnapshot.data())
+            this.context.$store.dispatch('map/setMapsByUser', querySnapshot.data())
           }
         })
       }
