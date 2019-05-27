@@ -2,21 +2,18 @@
   <div class="dashboard">
     <page-header pageTitle="Dashboard" subTitle="Find all your stuff!"></page-header>
     <div class="container page-container">
-      <section class="section">
+      <section class="section dashboard-maps">
+        <router-link class="button is-primary is-small add-map" :to="{name: 'map-add'}">Add Map</router-link>
         <ul v-if="mapsByUser.length" class="maps">
           <li v-for="map in mapsByUser"  :key="map.id" class="map-item">
             <map-teaser :map="map"></map-teaser>
           </li>
         </ul>
+        <div v-else>
+          <p>You don't have any maps, you should add one!</p>
+        </div>
       </section>
     </div>
-
-    <form @submit.prevent="addMap">
-      <label>Map Name
-        <input type="text" v-model="newMap.name">
-      </label>
-      <button>Add Map!</button>
-    </form>
   </div>
 </template>
 
@@ -72,6 +69,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.dashboard-maps {
+  position: relative;
+  .add-map {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+  }
+}
 .maps {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

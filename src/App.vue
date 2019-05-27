@@ -16,6 +16,7 @@
             </div>
             <div id="navbarMenuHeroA" :class="{ 'navbar-menu': true, 'is-active' : mobileMenuIsActive }">
               <div class="navbar-end">
+                <router-link class="navbar-item" :to="{ name: 'about' }">About</router-link>
                 <router-link v-if="!isLoggedIn" class="navbar-item" :to="{ name: 'sign-in'}">Sign In</router-link>
                 <div v-if="isLoggedIn" :class="['navbar-item dropdown', 'is-right', {'is-active' : dropdownIsActive}]" v-on-clickaway="closeDropdown">
                   <div class="dropdown-trigger">
@@ -27,7 +28,7 @@
                   <div class="dropdown-menu" id="dropdown-menu" role="menu">
                     <div class="dropdown-content">
                       <router-link class="dropdown-item" :to="{ name: 'dashboard' }">Dashboard</router-link>
-                      <router-link class="dropdown-item" :to="{ name: 'about' }">About</router-link>
+                      <router-link class="dropdown-item" :to="{ name: 'map-add' }">New Map</router-link>
                       <hr class="dropdown-divider">
                       <a class="dropdown-item" @click.prevent="logout">Logout</a>
                     </div>
@@ -121,5 +122,9 @@ export default {
   border-radius: 100%;
   overflow: hidden;
   background: $info;
+}
+footer.footer {
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 </style>

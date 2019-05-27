@@ -32,9 +32,25 @@ export const router = new Router({
       }
     },
     {
+      path: '/map/add',
+      name: 'map-add',
+      component: () => import('./views/MapAdd.vue'),
+      meta: {
+        requireAuth: true
+      }
+    },
+    {
       path: '/map/:id',
       name: 'map-detail',
       component: () => import('./views/MapDetail.vue'),
+      meta: {
+        requireAuth: true
+      }
+    },
+    {
+      path: '/map/:id/edit',
+      name: 'map-editor',
+      component: () => import('./views/MapEditor.vue'),
       meta: {
         requireAuth: true
       }
