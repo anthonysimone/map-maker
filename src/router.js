@@ -44,7 +44,8 @@ export const router = new Router({
       name: 'map-detail',
       component: () => import('./views/MapDetail.vue'),
       meta: {
-        requireAuth: true
+        requireAuth: true,
+        layout: 'map-layout'
       }
     },
     {
@@ -52,7 +53,8 @@ export const router = new Router({
       name: 'map-editor',
       component: () => import('./views/MapEditor.vue'),
       meta: {
-        requireAuth: true
+        requireAuth: true,
+        layout: 'map-layout'
       }
     },
     {
