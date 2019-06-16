@@ -1,23 +1,19 @@
 <template>
   <div class="map-editor">
-    <div class="container page-container">
-      <section class="section">
-        <h1>Edit: {{ editableMapData.name }}</h1>
-        <div class="toolbar">
-          <button class="button is-small"
-            v-shortkey.once="{cmdSave: ['meta', 's'], ctrlSave: ['ctrl', 's']}"
-            @shortkey="saveMap"
-            @click="saveMap"
-          >Save</button>
-          <confirmation-modal classes="button is-small is-danger"
-            @confirmationSuccess="resetMap"
-            dialog-title="Warning!"
-            dialog-body="You are about to reset your map edits back to your last save. If you do this, you will lose ALL changes you've made since the last time you've saved last. This cannot be undone."
-          >Reset</confirmation-modal>
-        </div>
-        <display-map :map="editableMapData" :editable="true"></display-map>
-      </section>
+    <div class="editor-toolbar">
+      <h1>Edit: {{ editableMapData.name }}</h1>
+      <button class="button is-small"
+        v-shortkey.once="{cmdSave: ['meta', 's'], ctrlSave: ['ctrl', 's']}"
+        @shortkey="saveMap"
+        @click="saveMap"
+      >Save</button>
+      <confirmation-modal classes="button is-small is-danger"
+        @confirmationSuccess="resetMap"
+        dialog-title="Warning!"
+        dialog-body="You are about to reset your map edits back to your last save. If you do this, you will lose ALL changes you've made since the last time you've saved last. This cannot be undone."
+      >Reset</confirmation-modal>
     </div>
+    <display-map :map="editableMapData" :editable="true" v-hammer:pan="handleDrag" ref="displayMap" :style="{'--x-offset': pxOffsetX, '--y-offset': pxOffsetY, '--scale': scale}"></display-map>
     <section class="editor-panel" :class="{'is-active': showEditorPanel}">
       <button @click="toggleEditorPanel" class="editor-panel-toggle">O</button>
       <div class="slideout-wrapper">
@@ -108,7 +104,13 @@ export default {
       editableWidth: null,
       editableLength: null,
       anchor: null,
-      showEditorPanel: false
+      showEditorPanel: false,
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+      initialOffsetX: 0,
+      initialOffsetY: 0,
+      isDragging: false
     }
   },
   computed: {
@@ -190,6 +192,12 @@ export default {
       }
 
       return offset
+    },
+    pxOffsetX () {
+      return this.offsetX + 'px'
+    },
+    pxOffsetY () {
+      return this.offsetY + 'px'
     }
   },
   methods: {
@@ -253,43 +261,47 @@ export default {
         startCoords: newStartCoords
       }
 
-      console.log('new map', this.editableMapData)
-    },
-    updateMapSizeByOffset () {
-      let offset = this.getOffset
-      console.log(offset)
-
-      // Build our new map using the new size as the frame and getting existing tiles
-      // from the offset and old map when available
-      let tiles = {}
-      for (let l = 0; l < this.editableLength; l++) {
-        let row = {}
-        for (let w = 0; w < this.editableWidth; w++) {
-          let newCoords = this.modifyCoords({ x: w, y: l }, offset)
-          // console.log('current, offset, new', { x: w, y: l }, offset, newCoords)
-          let newTile = this.getTileOrGenerateNewTile(newCoords, this.editableMapData)
-          row[w] = {
-            ...newTile,
-            position: {
-              x: w,
-              y: l
-            }
-          }
-        }
-        tiles[l] = row
-      }
-
-      console.log('old map', this.editableMapData)
-
-      this.editableMapData = {
-        ...this.editableMapData,
-        tilesLength: this.editableLength,
-        tilesWidth: this.editableWidth,
-        tiles
-      }
+      // console.log('offsets', offset)
+      // this.offsetX += -offset.x * TILE_SIZE
+      // this.offsetY += -offset.y * TILE_SIZE
 
       console.log('new map', this.editableMapData)
     },
+    // updateMapSizeByOffset () {
+    //   let offset = this.getOffset
+    //   console.log(offset)
+
+    //   // Build our new map using the new size as the frame and getting existing tiles
+    //   // from the offset and old map when available
+    //   let tiles = {}
+    //   for (let l = 0; l < this.editableLength; l++) {
+    //     let row = {}
+    //     for (let w = 0; w < this.editableWidth; w++) {
+    //       let newCoords = this.modifyCoords({ x: w, y: l }, offset)
+    //       // console.log('current, offset, new', { x: w, y: l }, offset, newCoords)
+    //       let newTile = this.getTileOrGenerateNewTile(newCoords, this.editableMapData)
+    //       row[w] = {
+    //         ...newTile,
+    //         position: {
+    //           x: w,
+    //           y: l
+    //         }
+    //       }
+    //     }
+    //     tiles[l] = row
+    //   }
+
+    //   console.log('old map', this.editableMapData)
+
+    //   this.editableMapData = {
+    //     ...this.editableMapData,
+    //     tilesLength: this.editableLength,
+    //     tilesWidth: this.editableWidth,
+    //     tiles
+    //   }
+
+    //   console.log('new map', this.editableMapData)
+    // },
     getTileFromMap (coords, map) {
       if (map.tiles.hasOwnProperty(coords.y) && map.tiles[coords.y].hasOwnProperty(coords.x)) {
         return map.tiles[coords.y][coords.x]
@@ -315,12 +327,34 @@ export default {
         x: coords.x - offset.x,
         y: coords.y - offset.y
       }
+    },
+    handleDrag (event) {
+      // Start the drag and log the initial coords
+      if (!this.isDragging) {
+        this.isDragging = true
+        this.initialOffsetX = this.offsetX
+        this.initialOffsetY = this.offsetY
+      }
+
+      // Update our offsets which will move our map
+      this.offsetX = event.deltaX + this.initialOffsetX
+      this.offsetY = event.deltaY + this.initialOffsetY
+
+      // Drag ended
+      // this is where we do any end of drag events we need
+      if (event.isFinal) {
+        this.isDragging = false
+      }
     }
   },
   created () {
     this.setEditableMapData()
   },
   mounted () {
+    // this.setInitialHeight
+    let displayMap = this.$refs.displayMap.$el
+    this.offsetX = (window.innerWidth - displayMap.clientWidth) / 2
+    this.offsetY = (window.innerHeight - displayMap.clientHeight) / 2
   }
 }
 </script>
@@ -328,7 +362,14 @@ export default {
 <style lang="scss" scoped>
 .map-editor {
   position: relative;
+  flex: 1;
 }
+
+.editor-toolbar {
+  position: relative;
+  z-index: 10;
+}
+
 .editor-panel {
   position: absolute;
   top: 0;

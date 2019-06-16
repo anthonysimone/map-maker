@@ -34,7 +34,7 @@ export default {
   },
   data () {
     return {
-
+      scale: 1
     }
   },
   computed: {
@@ -65,12 +65,22 @@ export default {
     // tilesLength () {
     //   return this.map.tilesLength
     // }
+  },
+  created () {
+  },
+  mounted () {
   }
-
 }
 </script>
 
 <style lang="scss">
+.display-map {
+  position: absolute;
+  top: var(--y-offset);
+  left: var(--x-offset);
+  // transform: translate3d(-50%, -50%, 0) translate3d(var(--x-offset), var(--y-offset), 0) scale(var(--scale));
+  // transform: translate3d(var(--x-offset), var(--y-offset), 0) scale(var(--scale));
+}
 .map-wrapper {
   --column-number: 0;
   --row-number: 0;

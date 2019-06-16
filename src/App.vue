@@ -1,11 +1,18 @@
 <template>
   <div id="app">
 
-    <component :is="layout">
-      <div class="main-content">
+    <template v-if="layout === 'map-layout'">
+      <component :is="layout">
         <router-view/>
-      </div>
-    </component>
+      </component>
+    </template>
+    <template v-else>
+      <component :is="layout">
+        <div class="main-content">
+          <router-view/>
+        </div>
+      </component>
+    </template>
 
     <v-dialog></v-dialog>
   </div>
