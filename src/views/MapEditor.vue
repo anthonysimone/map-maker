@@ -12,8 +12,15 @@
         dialog-title="Warning!"
         dialog-body="You are about to reset your map edits back to your last save. If you do this, you will lose ALL changes you've made since the last time you've saved last. This cannot be undone."
       >Reset</confirmation-modal>
+      <button @click="decreaseScale" :disabled="!canDecrimentScale">Smaller</button>
+      <button @click="increaseScale" :disabled="!canIncrementScale">Bigger</button>
+      <button @click="toggleView">Toggle View</button>
     </div>
-    <display-map :map="editableMapData" :editable="true" v-hammer:pan="handleDrag" ref="displayMap" :style="{'--x-offset': pxOffsetX, '--y-offset': pxOffsetY, '--scale': scale}"></display-map>
+    <display-map :map="editableMapData"
+      :editable="true"
+      v-hammer:pan="handleDrag"
+      :style="{'--x-offset': pxOffsetX, '--y-offset': pxOffsetY, '--scale': scale, '--rotate-x': rotateX, '--translate-z': translateZ}"
+    ></display-map>
     <section class="editor-panel" :class="{'is-active': showEditorPanel}">
       <button @click="toggleEditorPanel" class="editor-panel-toggle">O</button>
       <div class="slideout-wrapper">
@@ -105,12 +112,15 @@ export default {
       editableLength: null,
       anchor: null,
       showEditorPanel: false,
-      scale: 1,
       offsetX: 0,
       offsetY: 0,
       initialOffsetX: 0,
       initialOffsetY: 0,
-      isDragging: false
+      isDragging: false,
+      scale: 1,
+      rotateX: '0deg',
+      translateZ: '0px',
+      isTiltView: false
     }
   },
   computed: {
@@ -198,6 +208,12 @@ export default {
     },
     pxOffsetY () {
       return this.offsetY + 'px'
+    },
+    canDecrimentScale () {
+      return this.scale > 0.1
+    },
+    canIncrementScale () {
+      return this.scale < 1
     }
   },
   methods: {
@@ -296,6 +312,23 @@ export default {
       // this is where we do any end of drag events we need
       if (event.isFinal) {
         this.isDragging = false
+      }
+    },
+    decreaseScale () {
+      this.scale -= 0.1
+    },
+    increaseScale () {
+      this.scale += 0.1
+    },
+    toggleView () {
+      if (this.isTiltView) {
+        this.isTiltView = false
+        this.rotateX = '0deg'
+        this.translateZ = '0px'
+      } else {
+        this.isTiltView = true
+        this.rotateX = '40deg'
+        this.translateZ = '-100px'
       }
     }
   },

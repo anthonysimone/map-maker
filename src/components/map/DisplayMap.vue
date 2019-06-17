@@ -1,5 +1,5 @@
 <template>
-  <div class="display-map">
+  <div class="display-map" :style="{'height': initialTileLengthValue, 'width': initialTileWidthValue}">
     <transition-group class="tiles-wrapper" name="new-tile" tag="div" :style="{'height': initialTileLengthValue, 'width': initialTileWidthValue}">
       <map-tile v-for="tile in this.tilesAsSingleArray"
         :key="tile.position.x + ',' + tile.position.y"
@@ -32,7 +32,6 @@ export default {
   },
   data () {
     return {
-      scale: 1,
       initialTileWidth: null,
       initialTileLength: null,
       centeredTop: null,
@@ -103,10 +102,13 @@ export default {
   position: absolute;
   top: var(--y-offset);
   left: var(--x-offset);
+  perspective: 600px;
 }
 
 .tiles-wrapper {
   position: absolute;
+  transform: scale(var(--scale)) rotateX(var(--rotate-x)) translateZ(var(--translate-z));
+  transition: transform 600ms ease;
 }
 
 // Tile enter/leave transitions
