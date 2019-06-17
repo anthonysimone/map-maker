@@ -1,15 +1,13 @@
 <template>
   <div class="display-map">
-    <div :style="{'--column-number': map.tilesWidth, '--row-number': map.tilesLength}">
-      <transition-group class="map-wrapper" name="tile-row" tag="div" :duration="1000">
-      <transition-group v-for="row in this.tilesAsArray" class="tile-row" :key="row.position" name="tile" tag="div">
-        <map-tile v-for="tile in row.tiles" :key="tile.position.x"
-          :editable="editable"
-          :tile="tile"
-        ></map-tile>
-      </transition-group>
-      </transition-group>
-    </div>
+    <transition-group class="tiles-wrapper" name="new-tile" tag="div" :style="{'height': initialTileLengthValue, 'width': initialTileWidthValue}">
+      <map-tile v-for="tile in this.tilesAsSingleArray"
+        :key="tile.position.x + ',' + tile.position.y"
+        :editable="editable"
+        :tile="tile"
+        :style="{'position': 'absolute', '--tile-top': tileTop(tile.position.y), '--tile-left': tileLeft(tile.position.x)}"
+      ></map-tile>
+    </transition-group>
   </div>
 </template>
 
@@ -34,7 +32,11 @@ export default {
   },
   data () {
     return {
-      scale: 1
+      scale: 1,
+      initialTileWidth: null,
+      initialTileLength: null,
+      centeredTop: null,
+      centeredLeft: null
     }
   },
   computed: {
@@ -43,8 +45,6 @@ export default {
       let startCoords = this.map.startCoords
       let length = this.map.tilesLength
       let width = this.map.tilesWidth
-
-      console.log('passed map object', this.map)
 
       let rows = []
       for (let l = startCoords.y; l < (startCoords.y + length); l++) {
@@ -58,17 +58,42 @@ export default {
       console.log('tiles as array!', rows)
 
       return rows
+    },
+    initialTileWidthValue () {
+      console.log('test', this.initialTileWidth)
+      return (this.initialTileWidth * 100) + 'px'
+    },
+    initialTileLengthValue () {
+      return (this.initialTileLength * 100) + 'px'
+    },
+    tilesAsSingleArray () {
+      let tiles = this.map.tiles
+      let startCoords = this.map.startCoords
+      let length = this.map.tilesLength
+      let width = this.map.tilesWidth
+
+      let tilesArray = []
+      for (let l = startCoords.y; l < (startCoords.y + length); l++) {
+        for (let w = startCoords.x; w < (startCoords.x + width); w++) {
+          tilesArray.push(tiles[l][w])
+        }
+      }
+
+      return tilesArray
     }
-    // tilesWidth () {
-    //   return this.map.tilesWidth
-    // },
-    // tilesLength () {
-    //   return this.map.tilesLength
-    // }
+  },
+  methods: {
+    tileTop (yOffset) {
+      return ((yOffset - this.initialStartCoords.y) * 100) + 'px'
+    },
+    tileLeft (xOffset) {
+      return ((xOffset - this.initialStartCoords.x) * 100) + 'px'
+    }
   },
   created () {
-  },
-  mounted () {
+    this.initialTileLength = this.map.tilesLength
+    this.initialTileWidth = this.map.tilesWidth
+    this.initialStartCoords = this.map.startCoords
   }
 }
 </script>
@@ -78,51 +103,30 @@ export default {
   position: absolute;
   top: var(--y-offset);
   left: var(--x-offset);
-  // transform: translate3d(-50%, -50%, 0) translate3d(var(--x-offset), var(--y-offset), 0) scale(var(--scale));
-  // transform: translate3d(var(--x-offset), var(--y-offset), 0) scale(var(--scale));
-}
-.map-wrapper {
-  --column-number: 0;
-  --row-number: 0;
-  display: inline-block;
-  // display: grid;
-  // grid-template-columns: repeat(var(--column-number), 100px);
-  // grid-template-rows: repeat(var(--row-number), 100px);
-  // grid-gap: 2px;
-  // border: 2px solid $warning;
-}
-.tile-row {
-  & > div {
-    // float: left;
-  }
-  display: flex;
 }
 
-// Row enter/leave transitions
-.tile-row-enter-active, .tile-row-leave-active {
-  .map-tile {
-    transition: opacity 1s, transform 1s;
-  }
-}
-.tile-row-enter .map-tile {
-  opacity: 0;
-  transform: translateY(-40px) rotate(360deg);
-}
-.tile-row-leave-to .map-tile {
-  opacity: 0;
-  transform: scaleX(0) scaleY(0);
+.tiles-wrapper {
+  position: absolute;
 }
 
 // Tile enter/leave transitions
-.tile-enter-active, .tile-leave-active {
+.new-tile-enter-active {
   transition: opacity 1s, transform 1s;
 }
-.tile-enter {
+.new-tile-leave-active {
+  transition: opacity 500ms, transform 500ms;
+}
+.new-tile-enter {
   opacity: 0;
   transform: translateY(-40px) rotate(360deg);
 }
-.tile-leave-to {
+.new-tile-leave-to {
   opacity: 0;
-  transform: scaleX(0) scaleY(0);
+  transform: scaleX(0.5) scaleY(0.5);
+  @for $i from 1 to 7 {
+    &:nth-child(5n + #{$i}) {
+      transition-delay: 70ms * $i;
+    }
+  }
 }
 </style>

@@ -28,6 +28,10 @@ export default {
 
 <style lang="scss" scoped>
 .map-tile {
+  --tile-top: 0;
+  --tile-left: 0;
+  top: var(--tile-top);
+  left: var(--tile-left);
   height: 100px;
   width: 100px;
   border: 2px solid $info;

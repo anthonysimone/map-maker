@@ -241,17 +241,11 @@ export default {
         for (let w = newStartCoords.x; w < (newStartCoords.x + this.editableWidth); w++) {
           let newTile = this.getTileOrGenerateNewTile({ x: w, y: l }, this.editableMapData)
           row[w] = {
-            ...newTile,
-            position: {
-              x: w,
-              y: l
-            }
+            ...newTile
           }
         }
         tiles[l] = row
       }
-
-      console.log('old map', this.editableMapData)
 
       this.editableMapData = {
         ...this.editableMapData,
@@ -260,48 +254,7 @@ export default {
         tiles,
         startCoords: newStartCoords
       }
-
-      // console.log('offsets', offset)
-      // this.offsetX += -offset.x * TILE_SIZE
-      // this.offsetY += -offset.y * TILE_SIZE
-
-      console.log('new map', this.editableMapData)
     },
-    // updateMapSizeByOffset () {
-    //   let offset = this.getOffset
-    //   console.log(offset)
-
-    //   // Build our new map using the new size as the frame and getting existing tiles
-    //   // from the offset and old map when available
-    //   let tiles = {}
-    //   for (let l = 0; l < this.editableLength; l++) {
-    //     let row = {}
-    //     for (let w = 0; w < this.editableWidth; w++) {
-    //       let newCoords = this.modifyCoords({ x: w, y: l }, offset)
-    //       // console.log('current, offset, new', { x: w, y: l }, offset, newCoords)
-    //       let newTile = this.getTileOrGenerateNewTile(newCoords, this.editableMapData)
-    //       row[w] = {
-    //         ...newTile,
-    //         position: {
-    //           x: w,
-    //           y: l
-    //         }
-    //       }
-    //     }
-    //     tiles[l] = row
-    //   }
-
-    //   console.log('old map', this.editableMapData)
-
-    //   this.editableMapData = {
-    //     ...this.editableMapData,
-    //     tilesLength: this.editableLength,
-    //     tilesWidth: this.editableWidth,
-    //     tiles
-    //   }
-
-    //   console.log('new map', this.editableMapData)
-    // },
     getTileFromMap (coords, map) {
       if (map.tiles.hasOwnProperty(coords.y) && map.tiles[coords.y].hasOwnProperty(coords.x)) {
         return map.tiles[coords.y][coords.x]
@@ -312,13 +265,12 @@ export default {
     getTileOrGenerateNewTile (coords, map) {
       let oldTile = this.getTileFromMap(coords, map)
       if (oldTile) {
-        // console.log('tile exists!')
         return oldTile
       } else {
-        // console.log('generating new tile!')
         // generate new default tile settings
         return {
-          walkability: true
+          walkability: true,
+          position: coords
         }
       }
     },
@@ -351,10 +303,8 @@ export default {
     this.setEditableMapData()
   },
   mounted () {
-    // this.setInitialHeight
-    let displayMap = this.$refs.displayMap.$el
-    this.offsetX = (window.innerWidth - displayMap.clientWidth) / 2
-    this.offsetY = (window.innerHeight - displayMap.clientHeight) / 2
+    this.offsetX = (window.innerWidth - this.map.tilesWidth * 100) / 2
+    this.offsetY = (window.innerHeight - this.map.tilesLength * 100) / 2
   }
 }
 </script>
