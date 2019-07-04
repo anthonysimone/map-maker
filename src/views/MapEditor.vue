@@ -16,11 +16,14 @@
       <button @click="increaseScale" :disabled="!canIncrementScale">Bigger</button>
       <button @click="toggleView">Toggle View</button>
     </div>
-    <display-map :map="editableMapData"
-      :editable="true"
-      v-hammer:pan="handleDrag"
-      :style="{'--x-offset': pxOffsetX, '--y-offset': pxOffsetY, '--scale': scale, '--rotate-x': rotateX, '--translate-z': translateZ}"
-    ></display-map>
+    <div class="map-editor-wrapper" ref="mapElementWrapper">
+      <display-map :map="editableMapData"
+        :editable="true"
+        v-hammer:pan="handleDrag"
+        ref="mapElement"
+        :style="mapPositionStyle"
+      ></display-map>
+    </div>
     <section class="editor-panel" :class="{'is-active': showEditorPanel}">
       <button @click="toggleEditorPanel" class="editor-panel-toggle">O</button>
       <div class="slideout-wrapper">
@@ -116,11 +119,12 @@ export default {
       offsetY: 0,
       initialOffsetX: 0,
       initialOffsetY: 0,
-      isDragging: false,
       scale: 1,
       rotateX: '0deg',
       translateZ: '0px',
-      isTiltView: false
+      isTiltView: false,
+      isDragging: false,
+      animationDone: false
     }
   },
   computed: {
@@ -210,10 +214,15 @@ export default {
       return this.offsetY + 'px'
     },
     canDecrimentScale () {
-      return this.scale > 0.1
+      return this.scale > 0.5
     },
     canIncrementScale () {
       return this.scale < 1
+    },
+    mapPositionStyle () {
+      return {
+        transform: `translate3d(${this.offsetX}px, ${this.offsetY}px, 0) scale(${this.scale}) rotateX(${this.rotateX})`
+      }
     }
   },
   methods: {
@@ -298,20 +307,25 @@ export default {
     },
     handleDrag (event) {
       // Start the drag and log the initial coords
-      if (!this.isDragging) {
-        this.isDragging = true
-        this.initialOffsetX = this.offsetX
-        this.initialOffsetY = this.offsetY
-      }
+      if (!this.animationDone) {
+        this.animationDone = true
+        requestAnimationFrame(() => {
+          if (!this.isDragging) {
+            this.isDragging = true
+            this.initialOffsetX = this.offsetX
+            this.initialOffsetY = this.offsetY
+          }
 
-      // Update our offsets which will move our map
-      this.offsetX = event.deltaX + this.initialOffsetX
-      this.offsetY = event.deltaY + this.initialOffsetY
+          // Update our offsets which will move our map
+          this.offsetX = event.deltaX + this.initialOffsetX
+          this.offsetY = event.deltaY + this.initialOffsetY
 
-      // Drag ended
-      // this is where we do any end of drag events we need
-      if (event.isFinal) {
-        this.isDragging = false
+          // Drag ended, this is where we do any end of drag events we need
+          if (event.isFinal) {
+            this.isDragging = false
+          }
+          this.animationDone = false
+        })
       }
     },
     decreaseScale () {
@@ -346,6 +360,10 @@ export default {
 .map-editor {
   position: relative;
   flex: 1;
+}
+
+.map-editor-wrapper {
+  perspective: 600px;
 }
 
 .editor-toolbar {

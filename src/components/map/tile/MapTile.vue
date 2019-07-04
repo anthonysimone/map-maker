@@ -32,6 +32,8 @@ export default {
   --tile-left: 0;
   top: var(--tile-top);
   left: var(--tile-left);
+  position: absolute;
+  // transform: translate3d(var(--tile-left), var(--tile-top), 0);
   height: 100px;
   width: 100px;
   border: 2px solid $info;

@@ -1,11 +1,11 @@
 <template>
-  <div class="display-map" :style="{'height': initialTileLengthValue, 'width': initialTileWidthValue}">
-    <transition-group class="tiles-wrapper" name="new-tile" tag="div" :style="{'height': initialTileLengthValue, 'width': initialTileWidthValue}">
+  <div class="display-map" :style="{'height': initialTileLengthValue, 'width': initialTileWidthValue}" ref="mapElement">
+    <transition-group class="tiles-wrapper" name="new-tile" tag="div" :style="{'height': initialTileLengthValue, 'width': initialTileWidthValue, '--col-number': map.tilesWidth, '--row-number': map.tilesLength}">
       <map-tile v-for="tile in this.tilesAsSingleArray"
         :key="tile.position.x + ',' + tile.position.y"
         :editable="editable"
         :tile="tile"
-        :style="{'position': 'absolute', '--tile-top': tileTop(tile.position.y), '--tile-left': tileLeft(tile.position.x)}"
+        :style="{'--tile-top': tileTop(tile.position.y), '--tile-left': tileLeft(tile.position.x)}"
       ></map-tile>
     </transition-group>
   </div>
@@ -35,7 +35,9 @@ export default {
       initialTileWidth: null,
       initialTileLength: null,
       centeredTop: null,
-      centeredLeft: null
+      centeredLeft: null,
+      isDragging: false,
+      animationDone: false
     }
   },
   computed: {
@@ -100,13 +102,15 @@ export default {
 <style lang="scss">
 .display-map {
   position: absolute;
-  top: var(--y-offset);
-  left: var(--x-offset);
-  perspective: 600px;
 }
 
 .tiles-wrapper {
+  // display: grid;
+  // grid-template-columns: repeat(var(--col-number), 100px);
+  // grid-template-rows: repeat(var(--row-number), 100px);
+  // grid-gap: 2px;
   position: absolute;
+  will-change: transform;
   transform: scale(var(--scale)) rotateX(var(--rotate-x)) translateZ(var(--translate-z));
   transition: transform 600ms ease;
 }
