@@ -6880,6 +6880,16 @@ thread-loader@^2.1.2:
     loader-utils "^1.1.0"
     neo-async "^2.6.0"
 
+three@^0.106.2:
+  version "0.106.2"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.106.2.tgz#6752d304c470e4df230944ecd45325e7bf79e1f8"
+  integrity sha512-4Tlx43uoxnIaZFW2Bzkd1rXsatvVHEWAZJy8LuE+s6Q8c66ogNnhfq1bHiBKPAnXP230LD11H/ScIZc2LZMviA==
+
+three@^0.110.0:
+  version "0.110.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.110.0.tgz#8719591de1336269113ee79f4268ba247b2324f8"
+  integrity sha512-wlurH8XBO9Sd5VIw8nBa+taLR20kqaI4e9FiuMh6tqK8eOS2q2R+ZoUyufbyDTVTHhs8GiTbv0r2CMLkwerFJg==
+
 through2@^2.0.0:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.5.tgz#01c1e39eb31d07cb7d03a96a70823260b23132cd"
@@ -7221,6 +7231,13 @@ vue-eslint-parser@^5.0.0:
     espree "^4.1.0"
     esquery "^1.0.1"
     lodash "^4.17.11"
+
+vue-gl@^0.15.0:
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/vue-gl/-/vue-gl-0.15.0.tgz#1cfa461988e49bde3ad1dd98d8c436e80e4639b7"
+  integrity sha512-4Rkdsw0poV1ASLfDmEW7FQyVduLtPu9qizSrPYIaxy0GXa6rhfETzPfSrgWXbrf1hithUMBmdhUtpZYF9dzaig==
+  dependencies:
+    three "^0.106.2"
 
 vue-hot-reload-api@^2.3.0:
   version "2.3.3"
