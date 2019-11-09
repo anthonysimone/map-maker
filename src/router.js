@@ -58,6 +58,24 @@ export const router = new Router({
       }
     },
     {
+      path: '/map/webgl/:id',
+      name: 'webglmap-detail',
+      component: () => import('./views/webglmap/WebglmapDetail.vue'),
+      meta: {
+        requireAuth: true,
+        layout: 'map-layout'
+      }
+    },
+    {
+      path: '/map/webgl/:id/edit',
+      name: 'webglmap-editor',
+      component: () => import('./views/webglmap/WebglmapEditor.vue'),
+      meta: {
+        requireAuth: true,
+        layout: 'map-layout'
+      }
+    },
+    {
       path: '/sign-in',
       name: 'sign-in',
       component: () => import('./views/SignIn.vue')

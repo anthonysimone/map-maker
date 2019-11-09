@@ -6,6 +6,7 @@ import { vuexfireMutations } from 'vuexfire'
 import user from './modules/user'
 import item from './modules/item'
 import map from './modules/map'
+import webglmap from './modules/webglmap'
 import todo from './modules/todo'
 
 Vue.use(Vuex)
@@ -16,7 +17,7 @@ export default new Vuex.Store({
   },
   plugins: [createPersistedState({
     key: 'vuex-map-maker',
-    paths: ['user', 'item', 'map', 'todo']
+    paths: ['user', 'item', 'map', 'webglmap', 'todo']
   })],
   mutations: {
     ...vuexfireMutations
@@ -28,6 +29,7 @@ export default new Vuex.Store({
     user,
     item,
     map,
+    webglmap,
     todo
   }
 })

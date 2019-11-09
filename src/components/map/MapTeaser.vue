@@ -5,6 +5,7 @@
       <p>{{ map.id }}</p>
       <div class="action-buttons">
         <router-link class="button is-primary is-small" :to="{name: 'map-detail', params: {id: map.id}}">View</router-link>
+        <router-link class="button is-primary is-small" :to="{name: 'webglmap-detail', params: {id: map.id}}">View Webgl</router-link>
         <confirmation-modal classes="delete"
           @confirmationSuccess="deleteMap(map.id)"
           dialog-title="Warning!"

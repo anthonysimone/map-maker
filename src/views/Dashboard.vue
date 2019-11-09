@@ -4,6 +4,7 @@
     <div class="container page-container">
       <section class="section dashboard-maps">
         <router-link class="button is-primary is-small add-map" :to="{name: 'map-add'}">Add Map</router-link>
+        <router-link class="button is-primary is-small add-webglmap" :to="{name: 'webglmap-add'}">Add Webgl Map</router-link>
         <ul v-if="mapsByUser.length" class="maps">
           <li v-for="map in mapsByUser"  :key="map.id" class="map-item">
             <map-teaser :map="map"></map-teaser>
