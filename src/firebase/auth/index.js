@@ -1,6 +1,6 @@
 import * as firebase from 'firebase/app'
 import 'firebase/auth'
-import firebaseui from 'firebaseui'
+import * as firebaseui from 'firebaseui'
 import Users from '@/firebase/firestore/Users'
 import '@/firebase/firestore/index'
 
