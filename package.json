@@ -12,7 +12,7 @@
     "core-js": "^3.3.2",
     "firebase": "7.3.0",
     "firebaseui": "4.2.0",
-    "three": "^0.110.0",
+    "three": "0.112",
     "three-orbitcontrols": "^2.110.1",
     "vue": "^2.6.10",
     "vue-clickaway": "^2.2.2",
