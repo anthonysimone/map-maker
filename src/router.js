@@ -63,7 +63,7 @@ export const router = new Router({
       component: () => import('./views/webglmap/WebglmapDetail.vue'),
       meta: {
         requireAuth: true,
-        layout: 'map-layout'
+        layout: 'webglmap-layout'
       }
     },
     {
@@ -72,7 +72,7 @@ export const router = new Router({
       component: () => import('./views/webglmap/WebglmapEditor.vue'),
       meta: {
         requireAuth: true,
-        layout: 'map-layout'
+        layout: 'webglmap-layout'
       }
     },
     {

@@ -12,17 +12,10 @@
         dialog-title="Warning!"
         dialog-body="You are about to reset your map edits back to your last save. If you do this, you will lose ALL changes you've made since the last time you've saved last. This cannot be undone."
       >Reset</confirmation-modal>
-      <button @click="decreaseScale" :disabled="!canDecrimentScale">Smaller</button>
-      <button @click="increaseScale" :disabled="!canIncrementScale">Bigger</button>
-      <button @click="toggleView">Toggle View</button>
+      <router-link class="button is-primary is-small edit-map" :to="{name: 'dashboard'}">Dashboard</router-link>
     </div>
     <div class="map-editor-wrapper" ref="mapElementWrapper">
-      <display-map :map="editableMapData"
-        :editable="true"
-        v-hammer:pan="handleDrag"
-        ref="mapElement"
-        :style="mapPositionStyle"
-      ></display-map>
+      <display-webglmap :map="map"></display-webglmap>
     </div>
     <section class="editor-panel" :class="{'is-active': showEditorPanel}">
       <button @click="toggleEditorPanel" class="editor-panel-toggle">O</button>
@@ -98,13 +91,13 @@
 <script>
 import { mapGetters } from 'vuex'
 
-import DisplayMap from '@/components/map/DisplayMap.vue'
+import DisplayWebglmap from '@/components/map/DisplayWebglmap.vue'
 import ConfirmationModal from '@/components/elements/functional/ConfirmationModal'
 
 export default {
   name: 'map-editor',
   components: {
-    DisplayMap,
+    DisplayWebglmap,
     ConfirmationModal
   },
   data () {
@@ -367,7 +360,11 @@ export default {
 }
 
 .editor-toolbar {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(#ffffff, 0.9);
   z-index: 10;
 }
 
@@ -380,6 +377,7 @@ export default {
   background: pink;
   transform: translate3d(0, 0, 0);
   transition: transform 300ms ease-in-out;
+  z-index: 20;
   &.is-active {
     transform: translate3d(-100%, 0, 0);
   }
