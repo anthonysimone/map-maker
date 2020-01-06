@@ -15,7 +15,7 @@
       <router-link class="button is-primary is-small edit-map" :to="{name: 'dashboard'}">Dashboard</router-link>
     </div>
     <div class="map-editor-wrapper" ref="mapElementWrapper">
-      <display-webglmap :map="map"></display-webglmap>
+      <threejs-map-renderer></threejs-map-renderer>
     </div>
     <section class="editor-panel" :class="{'is-active': showEditorPanel}">
       <button @click="toggleEditorPanel" class="editor-panel-toggle">O</button>
@@ -91,13 +91,13 @@
 <script>
 import { mapGetters } from 'vuex'
 
-import DisplayWebglmap from '@/components/map/DisplayWebglmap.vue'
+import ThreejsMapRenderer from '@/components/threejs/MapRenderer/ThreejsMapRenderer'
 import ConfirmationModal from '@/components/elements/functional/ConfirmationModal'
 
 export default {
   name: 'map-editor',
   components: {
-    DisplayWebglmap,
+    ThreejsMapRenderer,
     ConfirmationModal
   },
   data () {

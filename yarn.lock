@@ -3416,6 +3416,11 @@ es-to-primitive@^1.2.0:
     is-date-object "^1.0.1"
     is-symbol "^1.0.2"
 
+es6-tween@^5.5.10:
+  version "5.5.10"
+  resolved "https://registry.yarnpkg.com/es6-tween/-/es6-tween-5.5.10.tgz#1267d602279fe0fcb98f796f05e745945b04c1ed"
+  integrity sha512-nzhoX7JX+U936ksm7aok9CYsl5Y4rGOzt/6hFTOUmoVjO8bjQAsh+Adqqnl6EKoRCI02Jr0/0OVuwHOotEYzwg==
+
 escape-html@~1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/escape-html/-/escape-html-1.0.3.tgz#0258eae4d3d0c0974de1c169188ef0051d1d1988"
@@ -7596,6 +7601,11 @@ static-extend@^0.1.1:
     define-property "^0.2.5"
     object-copy "^0.1.0"
 
+stats.js@^0.17.0:
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/stats.js/-/stats.js-0.17.0.tgz#b1c3dc46d94498b578b7fd3985b81ace7131cc7d"
+  integrity sha1-scPcRtlEmLV4t/05hbgaznExzH0=
+
 "statuses@>= 1.4.0 < 2", "statuses@>= 1.5.0 < 2", statuses@~1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-1.5.0.tgz#161c7dac177659fd9811f43771fa99381478628c"
@@ -7886,20 +7896,10 @@ thread-loader@^2.1.3:
     loader-utils "^1.1.0"
     neo-async "^2.6.0"
 
-three-orbitcontrols@^2.110.1:
-  version "2.110.1"
-  resolved "https://registry.yarnpkg.com/three-orbitcontrols/-/three-orbitcontrols-2.110.1.tgz#105fdad47c1de122e465950d61bae5f327674a29"
-  integrity sha512-z7Mg6dvg3a1IEdfeNuHRr29a+NMFnPzZ8jJ6VRMOKqgB3FUUj0Xzt+uiAWylgVpmoH33mJcFxzMTjqb3AJ5L/A==
-
 three@0.112:
   version "0.112.1"
   resolved "https://registry.yarnpkg.com/three/-/three-0.112.1.tgz#f8d8f4d0f8e5f753dac6260491b8209457fdc131"
   integrity sha512-8I0O74hiYtKl3LgDNcPJbBGOlpekbcJ6fJnImmW3mFdeUFJ2H9Y3/UuUSW2sBdjrIlCM0gvOkaTEFlofO900TQ==
-
-three@^0.106.2:
-  version "0.106.2"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.106.2.tgz#6752d304c470e4df230944ecd45325e7bf79e1f8"
-  integrity sha512-4Tlx43uoxnIaZFW2Bzkd1rXsatvVHEWAZJy8LuE+s6Q8c66ogNnhfq1bHiBKPAnXP230LD11H/ScIZc2LZMviA==
 
 through2@^2.0.0:
   version "2.0.5"
@@ -8243,13 +8243,6 @@ vue-eslint-parser@^5.0.0:
     espree "^4.1.0"
     esquery "^1.0.1"
     lodash "^4.17.11"
-
-vue-gl@^0.15.0:
-  version "0.15.0"
-  resolved "https://registry.yarnpkg.com/vue-gl/-/vue-gl-0.15.0.tgz#1cfa461988e49bde3ad1dd98d8c436e80e4639b7"
-  integrity sha512-4Rkdsw0poV1ASLfDmEW7FQyVduLtPu9qizSrPYIaxy0GXa6rhfETzPfSrgWXbrf1hithUMBmdhUtpZYF9dzaig==
-  dependencies:
-    three "^0.106.2"
 
 vue-hot-reload-api@^2.3.0:
   version "2.3.3"

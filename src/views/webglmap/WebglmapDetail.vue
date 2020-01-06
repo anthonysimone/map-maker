@@ -10,19 +10,19 @@
       <router-link class="button is-primary is-small edit-map" :to="{name: 'dashboard'}">Dashboard</router-link>
       <button class="details-toggle" @click="toggleMapDetails">Toggle</button>
     </div>
-    <display-webglmap :map="map"></display-webglmap>
+    <threejs-map-renderer></threejs-map-renderer>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 
-import DisplayWebglmap from '@/components/map/DisplayWebglmap.vue'
+import ThreejsMapRenderer from '@/components/threejs/MapRenderer/ThreejsMapRenderer'
 
 export default {
   name: 'map-detail',
   components: {
-    DisplayWebglmap
+    ThreejsMapRenderer
   },
   data () {
     return {
