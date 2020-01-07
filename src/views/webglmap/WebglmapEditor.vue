@@ -15,7 +15,7 @@
       <router-link class="button is-primary is-small edit-map" :to="{name: 'dashboard'}">Dashboard</router-link>
     </div>
     <div class="map-editor-wrapper" ref="mapElementWrapper">
-      <threejs-map-renderer></threejs-map-renderer>
+      <threejs-map-renderer :map="map"></threejs-map-renderer>
     </div>
     <section class="editor-panel" :class="{'is-active': showEditorPanel}">
       <button @click="toggleEditorPanel" class="editor-panel-toggle">O</button>

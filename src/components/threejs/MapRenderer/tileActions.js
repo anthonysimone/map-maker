@@ -16,10 +16,10 @@ export function toggleTileActiveState (name, instanceId, mesh) {
   let instanceKey = instanceId.toString()
 
   let instanceUserData = mesh.userData[instanceKey]
-  if (instanceUserData && instanceUserData.isAnimating) {
+  if (instanceUserData.isAnimating) {
     return
   }
-  if (!instanceUserData || (instanceUserData && !instanceUserData.isActive)) {
+  if (!instanceUserData.isActive) {
     tweenActiveTileToggle(mesh, instanceId, true)
   } else {
     tweenActiveTileToggle(mesh, instanceId, false)
@@ -33,6 +33,7 @@ export function rotateTile (name, instanceId, mesh) {
   mesh.getMatrixAt(instanceId, instanceMatrix)
   matrix.multiplyMatrices(instanceMatrix, rotationMatrix)
   mesh.setMatrixAt(instanceId, matrix)
+  mesh.userData[instanceId.toString()].rotation = (mesh.userData[instanceId.toString()].rotation + 1) % 4
   mesh.instanceMatrix.needsUpdate = true
 }
 
@@ -43,22 +44,26 @@ export function deleteTile (name, instanceId, mesh) {
   mesh.getMatrixAt(instanceId, instanceMatrix)
   matrix.multiplyMatrices(instanceMatrix, hideMatrix)
   mesh.setMatrixAt(instanceId, matrix)
+  mesh.userData[instanceId.toString()].exists = false
   mesh.instanceMatrix.needsUpdate = true
 }
 
 /**
  * Add tile
  */
-export function addTile (position, instancedMesh) {
+export function addTile (matrix, instancedMesh, rotation) {
   // Set this index's position
-  console.log('adding to this instance', instancedMesh)
-  instancedMesh.mesh.setMatrixAt(instancedMesh.count, position.matrix)
+  instancedMesh.mesh.setMatrixAt(instancedMesh.count, matrix)
   instancedMesh.mesh.instanceMatrix.needsUpdate = true
+  instancedMesh.mesh.userData[instancedMesh.count.toString()] = {
+    exists: true,
+    isActive: false,
+    rotation: rotation || 0
+  }
 
   // Increment our counter and the instanced mesh counter
   instancedMesh.mesh.count++
   instancedMesh.count++
-  console.log('after', instancedMesh)
 }
 
 /**
@@ -68,6 +73,13 @@ export function getTilePosition (name, instanceId, instancedMeshes) {
   instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix)
   vec.setFromMatrixPosition(instanceMatrix)
   return vec
+}
+
+/**
+ * Get rotation from name and instanceId
+ */
+export function getTileRotation (name, instanceId, instancedMeshes) {
+  return instancedMeshes[name].mesh.userData[instanceId.toString()].rotation
 }
 
 export function getSelectedTilePosition (selectedTile, instancedMeshes) {

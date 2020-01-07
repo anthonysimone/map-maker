@@ -10,7 +10,7 @@
       <router-link class="button is-primary is-small edit-map" :to="{name: 'dashboard'}">Dashboard</router-link>
       <button class="details-toggle" @click="toggleMapDetails">Toggle</button>
     </div>
-    <threejs-map-renderer></threejs-map-renderer>
+    <threejs-map-renderer :map="map"></threejs-map-renderer>
   </div>
 </template>
 

@@ -86,6 +86,9 @@
       <div class="control">
         <button class="go-fullscreen" @click="fullscreenMap">Go Fullscreen</button>
       </div>
+      <div class="control">
+        <button class="save" @click="saveMap">Save!</button>
+      </div>
     </div>
   </div>
 </template>
@@ -109,7 +112,8 @@ import {
   addTile,
   getTilePosition,
   getSelectedTilePosition,
-  hideRollOver
+  hideRollOver,
+  getTileRotation
 } from './tileActions'
 import { tweenActiveTileToggle } from './tweens'
 
@@ -118,9 +122,15 @@ export default {
   components: {
   },
   props: {
+    map: {
+      default: null,
+      required: true,
+      type: Object
+    }
   },
   data () {
     return {
+      id: this.$route.params.id,
       container: null,
       camera: null,
       controls: null,
@@ -132,7 +142,8 @@ export default {
       selectionHighlighter: null,
       boardGroup: null,
       characterGroup: null,
-      tilesNumber: 30,
+      tilesNumber: this.map.tilesWidth,
+      // tilesNumber: this.map.tilesWidth,
       stats: null,
       backgroundColor: new THREE.Color(0x8fbcd4),
       instancedMeshes: {
@@ -157,6 +168,7 @@ export default {
       rolloverOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       initialTileOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       matrix: new THREE.Matrix4(),
+      instanceMatrix: new THREE.Matrix4(),
       selectedTile: null,
       tapState: 'activate',
       creationTileType: 'first',
@@ -347,7 +359,6 @@ export default {
       // checker material
       const textureLoader = new THREE.TextureLoader()
       const texture = textureLoader.load('/threejs/textures/checkerboard.jpg')
-      console.log('texture', texture)
       texture.repeat.set(this.checkerboardSize / 4, this.checkerboardSize / 4)
       texture.encoding = THREE.sRGBEncoding
       texture.anisotropy = 16
@@ -412,7 +423,6 @@ export default {
           mesh: new THREE.InstancedMesh(this.geometries.tiles[i], this.materials.tiles[i], count),
           count: 0
         }
-        // console.log(this.instancedMeshes[key].mesh)
         this.instancedMeshes[key].mesh.count = 0
         this.instancedMeshes[key].mesh.frustumCulled = false
         this.instancedMeshes[key].mesh.name = key
@@ -435,9 +445,23 @@ export default {
             let key = instancedKeys[inst]
 
             // add the tile
-            addTile(this.transform, this.instancedMeshes[key])
+            addTile(this.transform.matrix, this.instancedMeshes[key])
           }
         }
+      }
+
+      if (this.map.threejsTiles) {
+        this.map.threejsTiles.forEach(tile => {
+          this.instanceMatrix.makeTranslation(tile.position.x, tile.position.y, tile.position.z)
+          this.matrix.makeRotationY(tile.rotation * Math.PI / 2)
+          this.instanceMatrix.multiply(this.matrix)
+
+          this.transform.position.set(tile.position.x, tile.position.y, tile.position.z)
+          // this.transform.rotation.set()
+          this.transform.rotateY(tile.rotation * Math.PI / 2)
+          this.transform.updateMatrix()
+          addTile(this.instanceMatrix, this.instancedMeshes[tile.type])
+        })
       }
 
       // Add all instancedMeshes to the scene
@@ -498,7 +522,6 @@ export default {
      * Reset all tiles
      */
     resetAllTiles () {
-      console.log('resetting tiles')
       let instancedMeshNamnes = Object.keys(this.instancedMeshes)
       instancedMeshNamnes.forEach(name => {
         let instanceKeys = Object.keys(this.instancedMeshes[name].mesh.userData)
@@ -630,7 +653,7 @@ export default {
     },
     addTileByType (type, position) {
       if (this.instancedMeshes.hasOwnProperty(type)) {
-        addTile(position, this.instancedMeshes[type])
+        addTile(position.matrix, this.instancedMeshes[type])
       } else {
         console.error(`Invalid tile type: '${type}'`)
       }
@@ -678,9 +701,36 @@ export default {
         elem.msRequestFullscreen()
       }
     },
-
     getInstancedMeshKeyByIndex (index) {
       return Object.keys(this.instancedMeshes)[index]
+    },
+    saveMap () {
+      // Get all of the instanced mesh keys
+      let instancedMeshNamnes = Object.keys(this.instancedMeshes)
+      let tilesToSave = []
+      instancedMeshNamnes.forEach(name => {
+        // Set mesh name
+        let instanceKeys = Object.keys(this.instancedMeshes[name].mesh.userData)
+        instanceKeys.forEach(instanceId => {
+          if (this.instancedMeshes[name].mesh.userData[instanceId.toString()].exists) {
+            const vec = getTilePosition(name, instanceId, this.instancedMeshes)
+            let tile = {
+              type: name,
+              position: { x: vec.x, y: vec.y, z: vec.z },
+              rotation: getTileRotation(name, instanceId, this.instancedMeshes)
+            }
+            tilesToSave.push(tile)
+          }
+        })
+      })
+
+      let copiedMapData = JSON.parse(JSON.stringify(this.map))
+      copiedMapData.threejsTiles = tilesToSave
+      // Update action
+      this.$store.dispatch('map/updateMap', {
+        id: this.id,
+        dataToUpdate: copiedMapData
+      })
     }
   },
   created () {

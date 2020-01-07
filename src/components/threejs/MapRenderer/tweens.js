@@ -9,7 +9,7 @@ export function tweenActiveTileToggle (mesh, instanceId, isActive) {
   let value = isActive ? 1 : -1
 
   // Do not trigger if already in motion.
-  if (mesh.userData[instanceKey] && mesh.userData[instanceKey].isAnimating) {
+  if (mesh.userData[instanceKey].isAnimating) {
     return
   }
 
@@ -19,11 +19,8 @@ export function tweenActiveTileToggle (mesh, instanceId, isActive) {
 
   // set original position
   mesh.getMatrixAt(instanceId, myInstanceMatrix)
-  mesh.userData[instanceKey] = {
-    elements: myInstanceMatrix.elements,
-    isAnimating: true,
-    isActive: false
-  }
+  mesh.userData[instanceKey].elements = myInstanceMatrix.elements
+  mesh.userData[instanceKey].isAnimating = true
 
   let current = {
     y: 0
