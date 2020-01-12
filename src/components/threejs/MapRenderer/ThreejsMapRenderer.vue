@@ -11,15 +11,15 @@
             <span>Activate</span>
           </label>
           <label class="radio-label">
-            <input type="radio" value="create" name="tapState" v-model="tapState">
+            <input type="radio" value="create" name="tapState" v-model="tapState" @change="onTapStateChange">
             <span>Create</span>
           </label>
           <label class="radio-label">
-            <input type="radio" value="select" name="tapState" v-model="tapState">
+            <input type="radio" value="select" name="tapState" v-model="tapState" @change="onTapStateChange">
             <span>Select</span>
           </label>
           <label class="radio-label">
-            <input type="radio" value="delete" name="tapState" v-model="tapState">
+            <input type="radio" value="delete" name="tapState" v-model="tapState" @change="onTapStateChange">
             <span>Delete</span>
           </label>
         </div>
@@ -94,6 +94,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import * as THREE from 'three'
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -107,9 +108,6 @@ import { loadTileTextures } from './loadTextures'
 import { onModelLoad, onModelProgress, onModelError } from './modelHelpers'
 import {
   toggleTileActiveState,
-  rotateTile,
-  deleteTile,
-  addTile,
   getTilePosition,
   getSelectedTilePosition,
   hideRollOver,
@@ -169,7 +167,6 @@ export default {
       initialTileOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       matrix: new THREE.Matrix4(),
       instanceMatrix: new THREE.Matrix4(),
-      selectedTile: null,
       tapState: 'activate',
       creationTileType: 'first',
       editMode: 'normal',
@@ -179,6 +176,10 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('threeMap', [
+      { instancedMeshesVuex: 'instancedMeshes' },
+      'selectedTile'
+    ]),
     checkerboardSize () {
       return this.tilesNumber % 4 === 0 ? this.tilesNumber : this.tilesNumber + 4 - (this.tilesNumber % 4)
     },
@@ -429,6 +430,9 @@ export default {
         this.instancedMeshes[key].mesh.itemType = 'tile'
       }
 
+      // Set vuex instancedMeshes
+      this.$store.dispatch('threeMap/setMeshes', this.instancedMeshes)
+
       if (withTiles) {
         // Populate all the instance meshes randomly
         let offset = (this.tilesNumber - 1) / 2
@@ -445,7 +449,8 @@ export default {
             let key = instancedKeys[inst]
 
             // add the tile
-            addTile(this.transform.matrix, this.instancedMeshes[key])
+            // addTile(this.transform.matrix, this.instancedMeshes[key])
+            this.$store.dispatch('threeMap/addInstance', { matrix: this.transform.matrix, name: key })
           }
         }
       }
@@ -460,7 +465,8 @@ export default {
           // this.transform.rotation.set()
           this.transform.rotateY(tile.rotation * Math.PI / 2)
           this.transform.updateMatrix()
-          addTile(this.instanceMatrix, this.instancedMeshes[tile.type])
+          // addTile(this.instanceMatrix, this.instancedMeshes[tile.type], tile.rotation)
+          this.$store.dispatch('threeMap/addInstance', { matrix: this.instanceMatrix, name: tile.type, rotation: tile.rotation })
         })
       }
 
@@ -565,8 +571,8 @@ export default {
         const name = intersects[0].object.name
         const instanceId = intersects[0].instanceId
         if (event.shiftKey || this.tapState === 'delete') {
-          // shift key is pressed, "delete"
-          deleteTile(name, instanceId, this.instancedMeshes[name].mesh)
+          // When shift key is pressed or in delete mode, "delete"
+          this.$store.dispatch('threeMap/deleteInstance', { name, instanceId })
         } else if (this.tapState === 'select') {
           this.selectTile(name, instanceId)
         } else if (this.tapState === 'activate') {
@@ -630,11 +636,7 @@ export default {
     },
     selectTile (name, instanceId) {
       // set selected tile
-      this.selectedTile = `${name}-${instanceId}`
-
-      // set selectedTile name in dom
-      // this.selectedTileLabel.textContent = this.selectedTile
-      // this.selectedTileActions.classList.add('has-selection')
+      this.$store.dispatch('threeMap/selectTile', { name, instanceId })
 
       // get position of selected tile and assign marker to that position
       let positionVec = getTilePosition(name, instanceId, this.instancedMeshes)
@@ -653,7 +655,7 @@ export default {
     },
     addTileByType (type, position) {
       if (this.instancedMeshes.hasOwnProperty(type)) {
-        addTile(position.matrix, this.instancedMeshes[type])
+        this.$store.dispatch('threeMap/addInstance', { matrix: position.matrix, name: type })
       } else {
         console.error(`Invalid tile type: '${type}'`)
       }
@@ -663,7 +665,7 @@ export default {
     },
     onTapStateChange (event) {
       if (this.tapState !== 'select') {
-        this.selectedTile = null
+        this.$store.dispatch('threeMap/clearTileSelection')
         this.selectionHighlighter.visible = false
       }
     },
@@ -678,8 +680,10 @@ export default {
       }
     },
     onRotateTile () {
+      console.log('instancedMeshes computed', this.instancedMeshesVuex)
+      console.log('instanced meshes local', this.instancedMeshes)
       let { name, instanceId } = deconstructTileStringId(this.selectedTile)
-      rotateTile(name, instanceId, this.instancedMeshes[name].mesh)
+      this.$store.dispatch('threeMap/rotateInstance', { name, instanceId })
     },
     onPlaceHero () {
       this.addModelToSelectedTile()
@@ -711,6 +715,7 @@ export default {
       instancedMeshNamnes.forEach(name => {
         // Set mesh name
         let instanceKeys = Object.keys(this.instancedMeshes[name].mesh.userData)
+        console.log(`saving tiles for '${name}'`, this.instancedMeshes[name].mesh)
         instanceKeys.forEach(instanceId => {
           if (this.instancedMeshes[name].mesh.userData[instanceId.toString()].exists) {
             const vec = getTilePosition(name, instanceId, this.instancedMeshes)
@@ -719,6 +724,7 @@ export default {
               position: { x: vec.x, y: vec.y, z: vec.z },
               rotation: getTileRotation(name, instanceId, this.instancedMeshes)
             }
+            console.log('tile to save', tile)
             tilesToSave.push(tile)
           }
         })
@@ -726,7 +732,7 @@ export default {
 
       let copiedMapData = JSON.parse(JSON.stringify(this.map))
       copiedMapData.threejsTiles = tilesToSave
-      // Update action
+      // Save map: Update action
       this.$store.dispatch('map/updateMap', {
         id: this.id,
         dataToUpdate: copiedMapData
