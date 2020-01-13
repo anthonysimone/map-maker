@@ -144,18 +144,6 @@ export default {
       // tilesNumber: this.map.tilesWidth,
       stats: null,
       backgroundColor: new THREE.Color(0x8fbcd4),
-      instancedMeshes: {
-        first: {},
-        second: {},
-        third: {},
-        fourth: {},
-        fifth: {},
-        sixth: {},
-        seventh: {},
-        eighth: {},
-        ninth: {},
-        tenth: {}
-      },
       rollOverGeo: null,
       rollOverMaterial: null,
       rollOverMesh: null,
@@ -176,15 +164,16 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('threeMap', [
-      { instancedMeshesVuex: 'instancedMeshes' },
-      'selectedTile'
-    ]),
+    ...mapGetters('threeMap', {
+      instancedMeshesVuex: 'instancedMeshes',
+      selectedTile: 'selectedTile'
+    }),
     checkerboardSize () {
       return this.tilesNumber % 4 === 0 ? this.tilesNumber : this.tilesNumber + 4 - (this.tilesNumber % 4)
     },
+    // TODO: at some point this needs to be dynamic based on tiles used, for now it's just a static definition
     numberOfInstancedMeshes () {
-      return Object.keys(this.instancedMeshes).length
+      return 5
     }
   },
   methods: {
@@ -212,7 +201,7 @@ export default {
       this.materials = this.createMaterials()
       this.geometries = this.createGeometries()
 
-      this.createMeshes(false)
+      this.createMeshes()
 
       this.loadCharacterModel()
       this.createRenderer()
@@ -349,13 +338,14 @@ export default {
       // Load tile textures and fillers
       const tiles = loadTileTextures()
 
-      for (let i = 0; i < this.numberOfInstancedMeshes - 5; i++) {
-        let tileColor = new THREE.MeshStandardMaterial({
-          color: Math.random() * 0xffffff,
-          flatShading: true
-        })
-        tiles.push(tileColor)
-      }
+      // TODO: delete after we don't need random colored tiles to fill anymore
+      // for (let i = 0; i < this.numberOfInstancedMeshes - 5; i++) {
+      //   let tileColor = new THREE.MeshStandardMaterial({
+      //     color: Math.random() * 0xffffff,
+      //     flatShading: true
+      //   })
+      //   tiles.push(tileColor)
+      // }
 
       // checker material
       const textureLoader = new THREE.TextureLoader()
@@ -403,7 +393,7 @@ export default {
     /**
      * Create meshes
      */
-    createMeshes (withTiles) {
+    createMeshes () {
       // create the train group that will hold all train pieces
       this.boardGroup = new THREE.Group()
 
@@ -416,43 +406,38 @@ export default {
 
       /** Create Tiles Instanced - Start */
       let count = this.tilesNumber * this.tilesNumber
+      // arbitrary constnat at this point
+      let buildingMeshes = {
+        first: {},
+        second: {},
+        third: {},
+        fourth: {},
+        fifth: {}
+      }
 
+      let buildingKeys = Object.keys(buildingMeshes)
       // Create all instanced meshes
-      for (let i = 0; i < this.numberOfInstancedMeshes; i++) {
-        let key = this.getInstancedMeshKeyByIndex(i)
-        this.instancedMeshes[key] = {
+      for (let i = 0; i < buildingKeys.length; i++) {
+        // let key = this.getInstancedMeshKeyByIndex(i)
+        let key = buildingKeys[i]
+        buildingMeshes[key] = {
           mesh: new THREE.InstancedMesh(this.geometries.tiles[i], this.materials.tiles[i], count),
           count: 0
         }
-        this.instancedMeshes[key].mesh.count = 0
-        this.instancedMeshes[key].mesh.frustumCulled = false
-        this.instancedMeshes[key].mesh.name = key
-        this.instancedMeshes[key].mesh.itemType = 'tile'
+        buildingMeshes[key].mesh.count = 0
+        buildingMeshes[key].mesh.frustumCulled = false
+        buildingMeshes[key].mesh.name = key
+        buildingMeshes[key].mesh.itemType = 'tile'
       }
 
       // Set vuex instancedMeshes
-      this.$store.dispatch('threeMap/setMeshes', this.instancedMeshes)
+      this.$store.dispatch('threeMap/setMeshes', buildingMeshes)
 
-      if (withTiles) {
-        // Populate all the instance meshes randomly
-        let offset = (this.tilesNumber - 1) / 2
-        let instancedKeys = Object.keys(this.instancedMeshes)
-
-        for (let x = 0; x < this.tilesNumber; x++) {
-          for (let z = 0; z < this.tilesNumber; z++) {
-            // set transform based on position
-            this.transform.position.set(offset - x, 0.125, offset - z)
-            this.transform.updateMatrix()
-
-            // Choose the instanced mesh to add to
-            let inst = Math.floor(Math.random() * this.numberOfInstancedMeshes)
-            let key = instancedKeys[inst]
-
-            // add the tile
-            // addTile(this.transform.matrix, this.instancedMeshes[key])
-            this.$store.dispatch('threeMap/addInstance', { matrix: this.transform.matrix, name: key })
-          }
-        }
+      // Add all instancedMeshes to the scene
+      for (let i = 0; i < buildingKeys.length; i++) {
+        // let key = this.getInstancedMeshKeyByIndex(i)
+        let key = buildingKeys[i]
+        this.boardGroup.add(buildingMeshes[key].mesh)
       }
 
       if (this.map.threejsTiles) {
@@ -465,15 +450,8 @@ export default {
           // this.transform.rotation.set()
           this.transform.rotateY(tile.rotation * Math.PI / 2)
           this.transform.updateMatrix()
-          // addTile(this.instanceMatrix, this.instancedMeshes[tile.type], tile.rotation)
           this.$store.dispatch('threeMap/addInstance', { matrix: this.instanceMatrix, name: tile.type, rotation: tile.rotation })
         })
-      }
-
-      // Add all instancedMeshes to the scene
-      for (let i = 0; i < this.numberOfInstancedMeshes; i++) {
-        let key = this.getInstancedMeshKeyByIndex(i)
-        this.boardGroup.add(this.instancedMeshes[key].mesh)
       }
 
       // Create and add the selection mesh
@@ -528,12 +506,12 @@ export default {
      * Reset all tiles
      */
     resetAllTiles () {
-      let instancedMeshNamnes = Object.keys(this.instancedMeshes)
-      instancedMeshNamnes.forEach(name => {
-        let instanceKeys = Object.keys(this.instancedMeshes[name].mesh.userData)
+      let instancedMeshNames = Object.keys(this.instancedMeshesVuex)
+      instancedMeshNames.forEach(name => {
+        let instanceKeys = Object.keys(this.instancedMeshesVuex[name].mesh.userData)
         instanceKeys.forEach(instanceId => {
-          if (this.instancedMeshes[name].mesh.userData[instanceId].isActive) {
-            tweenActiveTileToggle(this.instancedMeshes[name].mesh, instanceId, false)
+          if (this.instancedMeshesVuex[name].mesh.userData[instanceId].isActive) {
+            tweenActiveTileToggle(this.instancedMeshesVuex[name].mesh, instanceId, false)
           }
         })
       })
@@ -577,7 +555,7 @@ export default {
           this.selectTile(name, instanceId)
         } else if (this.tapState === 'activate') {
           // no shift key, activate
-          toggleTileActiveState(name, instanceId, this.instancedMeshes[name].mesh)
+          toggleTileActiveState(name, instanceId, this.instancedMeshesVuex[name].mesh)
         }
       }
 
@@ -639,14 +617,14 @@ export default {
       this.$store.dispatch('threeMap/selectTile', { name, instanceId })
 
       // get position of selected tile and assign marker to that position
-      let positionVec = getTilePosition(name, instanceId, this.instancedMeshes)
+      let positionVec = getTilePosition(name, instanceId, this.instancedMeshesVuex)
       const currentY = this.selectionHighlighter.position.y
       this.selectionHighlighter.position.set(positionVec.x, currentY, positionVec.z)
       this.selectionHighlighter.visible = true
     },
     addModelToSelectedTile () {
       if (this.selectedTile) {
-        let v = getSelectedTilePosition(this.selectedTile, this.instancedMeshes)
+        let v = getSelectedTilePosition(this.selectedTile, this.instancedMeshesVuex)
         v.y = 0.25
         this.characterGroup.position.set(v.x, v.y, v.z)
       } else {
@@ -654,7 +632,7 @@ export default {
       }
     },
     addTileByType (type, position) {
-      if (this.instancedMeshes.hasOwnProperty(type)) {
+      if (this.instancedMeshesVuex.hasOwnProperty(type)) {
         this.$store.dispatch('threeMap/addInstance', { matrix: position.matrix, name: type })
       } else {
         console.error(`Invalid tile type: '${type}'`)
@@ -680,8 +658,6 @@ export default {
       }
     },
     onRotateTile () {
-      console.log('instancedMeshes computed', this.instancedMeshesVuex)
-      console.log('instanced meshes local', this.instancedMeshes)
       let { name, instanceId } = deconstructTileStringId(this.selectedTile)
       this.$store.dispatch('threeMap/rotateInstance', { name, instanceId })
     },
@@ -706,23 +682,22 @@ export default {
       }
     },
     getInstancedMeshKeyByIndex (index) {
-      return Object.keys(this.instancedMeshes)[index]
+      return Object.keys(this.instancedMeshesVuex)[index]
     },
     saveMap () {
       // Get all of the instanced mesh keys
-      let instancedMeshNamnes = Object.keys(this.instancedMeshes)
+      let instancedMeshNamnes = Object.keys(this.instancedMeshesVuex)
       let tilesToSave = []
       instancedMeshNamnes.forEach(name => {
         // Set mesh name
-        let instanceKeys = Object.keys(this.instancedMeshes[name].mesh.userData)
-        console.log(`saving tiles for '${name}'`, this.instancedMeshes[name].mesh)
+        let instanceKeys = Object.keys(this.instancedMeshesVuex[name].mesh.userData)
         instanceKeys.forEach(instanceId => {
-          if (this.instancedMeshes[name].mesh.userData[instanceId.toString()].exists) {
-            const vec = getTilePosition(name, instanceId, this.instancedMeshes)
+          if (this.instancedMeshesVuex[name].mesh.userData[instanceId.toString()].exists) {
+            const vec = getTilePosition(name, instanceId, this.instancedMeshesVuex)
             let tile = {
               type: name,
               position: { x: vec.x, y: vec.y, z: vec.z },
-              rotation: getTileRotation(name, instanceId, this.instancedMeshes)
+              rotation: getTileRotation(name, instanceId, this.instancedMeshesVuex)
             }
             console.log('tile to save', tile)
             tilesToSave.push(tile)
