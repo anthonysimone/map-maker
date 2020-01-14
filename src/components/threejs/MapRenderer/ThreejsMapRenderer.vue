@@ -190,7 +190,7 @@ export default {
       this.scene.background = this.backgroundColor
 
       // add fog
-      // scene.fog = new THREE.Fog(backgroundColor, 30, 40);
+      // this.scene.fog = new THREE.Fog(this.backgroundColor, 20, 22)
 
       this.createCamera()
       this.createControls()
@@ -310,11 +310,10 @@ export default {
       gridGroup.add(this.rollOverMesh)
 
       // add grid
-      let gridHelper = new THREE.GridHelper(100, 100, 0x444444, 0x666666)
-      // gridHelper.colorGrid = 0x666666;
+      let gridHelper = new THREE.GridHelper(this.checkerboardSize, this.checkerboardSize, 0x444444, 0x666666)
       gridGroup.add(gridHelper)
 
-      let planeGeometry = new THREE.PlaneBufferGeometry(100, 100)
+      let planeGeometry = new THREE.PlaneBufferGeometry(this.checkerboardSize, this.checkerboardSize)
       planeGeometry.rotateX(Math.PI * -0.5)
       let plane = new THREE.Mesh(planeGeometry, new THREE.MeshBasicMaterial({
         visible: false
@@ -338,14 +337,42 @@ export default {
       // Load tile textures and fillers
       const tiles = loadTileTextures()
 
-      // TODO: delete after we don't need random colored tiles to fill anymore
-      // for (let i = 0; i < this.numberOfInstancedMeshes - 5; i++) {
-      //   let tileColor = new THREE.MeshStandardMaterial({
-      //     color: Math.random() * 0xffffff,
-      //     flatShading: true
-      //   })
-      //   tiles.push(tileColor)
-      // }
+      // The material for the base of the grid
+      const stage = new THREE.MeshStandardMaterial({
+        color: this.backgroundColor,
+        flatShading: true
+      })
+
+      // TODO: decide if this should be removed for an alternate fog of war mechanism
+      // // The material for the fog of war
+      // // create a typed array to hold texture data
+      // const totalMaskSize = this.checkerboardSize * this.checkerboardSize
+      // const mask = new Array(totalMaskSize)
+      // mask.fill(1)
+      // mask.fill(0, Math.floor(totalMaskSize / 2))
+      // const fogofwarData = new Uint8Array(totalMaskSize)
+      // // copy mask into the typed array
+      // fogofwarData.set(mask.map(v => v * 255))
+      // // create the texture
+      // const fogofwarTexture = new THREE.DataTexture(fogofwarData, this.checkerboardSize, this.checkerboardSize, THREE.LuminanceFormat, THREE.UnsignedByteType)
+      // fogofwarTexture.flipY = true
+      // fogofwarTexture.wrapS = THREE.ClampToEdgeWrapping
+      // fogofwarTexture.wrapT = THREE.ClampToEdgeWrapping
+      // // it's likely that our texture will not have "power of two" size, meaning that mipmaps are not going to be supported on WebGL 1.0, so let's turn them off
+      // fogofwarTexture.generateMipmaps = false
+
+      // fogofwarTexture.magFilter = THREE.NearestFilter
+      // fogofwarTexture.minFilter = THREE.NearestFilter
+
+      // const fogofwar = new THREE.MeshBasicMaterial({
+      //   color: 0x000000,
+      //   alphaMap: fogofwarTexture,
+      //   side: THREE.DoubleSide,
+      //   transparent: true,
+      //   depthWrite: false,
+      //   // depthTest: false,
+      //   opacity: 1
+      // })
 
       // checker material
       const textureLoader = new THREE.TextureLoader()
@@ -365,7 +392,9 @@ export default {
       return {
         tile,
         tiles,
-        board
+        board,
+        stage
+        // fogofwar
       }
     },
     /**
@@ -400,9 +429,19 @@ export default {
       this.scene.add(this.boardGroup)
 
       // Add checkerboard
-      const checkerboard = new THREE.Mesh(this.geometries.board, this.materials.board)
-      checkerboard.rotation.x = Math.PI * -0.5
-      this.boardGroup.add(checkerboard)
+      // TODO: determine what to do with checkerboard
+      const boardBase = new THREE.Mesh(this.geometries.board, this.materials.stage)
+      boardBase.position.y = -0.01
+      boardBase.rotation.x = Math.PI * -0.5
+      this.boardGroup.add(boardBase)
+
+      // Add fog of war
+      // TODO: probably remove this for an alternate fog of war mechanism
+      // const fogofwar = new THREE.Mesh(this.geometries.board, this.materials.fogofwar)
+      // fogofwar.position.y = 0.251
+      // fogofwar.rotation.x = Math.PI * -0.5
+
+      // this.scene.add(fogofwar)
 
       /** Create Tiles Instanced - Start */
       let count = this.tilesNumber * this.tilesNumber
