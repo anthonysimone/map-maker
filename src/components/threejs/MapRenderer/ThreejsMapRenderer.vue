@@ -518,6 +518,8 @@ export default {
 
       this.renderer.physicallyCorrectLights = true
 
+      this.renderer.domElement.id = 'map-canvas'
+
       // Add the canvas element
       this.container.appendChild(this.renderer.domElement)
     },
@@ -623,6 +625,10 @@ export default {
      */
     onDocumentMouseMove (event) {
       event.preventDefault()
+      if (event.target.id !== 'map-canvas') {
+        return
+      }
+
       setMouse(this.mouse, event, this.container)
       this.raycaster.setFromCamera(this.mouse, this.camera)
 
