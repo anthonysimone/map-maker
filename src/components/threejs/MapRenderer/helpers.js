@@ -34,3 +34,21 @@ export function setPan (controls, enable) {
   controls.mouseButtons.LEFT = mouseValue
   controls.touches.ONE = touchValue
 }
+
+/**
+ * Request opening element fullscreen. This won't work on many mobile devices.
+ */
+export function openElementFullscreen (elem) {
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen()
+  } else if (elem.mozRequestFullScreen) {
+    /* Firefox */
+    elem.mozRequestFullScreen()
+  } else if (elem.webkitRequestFullscreen) {
+    /* Chrome, Safari and Opera */
+    elem.webkitRequestFullscreen()
+  } else if (elem.msRequestFullscreen) {
+    /* IE/Edge */
+    elem.msRequestFullscreen()
+  }
+}

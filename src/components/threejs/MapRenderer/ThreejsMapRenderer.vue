@@ -1,95 +1,7 @@
 <template>
   <div class="threejs-map-renderer">
-    <div id="scene-container" ref="scene-container"></div>
-    <div class="ui-elements" :class="{ 'show-controls': showControls }">
-      <button class="controls-toggle" @click="toggleControlsVisibility">Toggle Controls</button>
-      <div class="control">
-        <label>Tool</label>
-        <div class="tool-state horizontal-radios">
-          <label class="radio-label">
-            <input type="radio" value="activate" checked name="tapState" v-model="tapState" @change="onTapStateChange">
-            <span>Activate</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" value="create" name="tapState" v-model="tapState" @change="onTapStateChange">
-            <span>Create</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" value="select" name="tapState" v-model="tapState" @change="onTapStateChange">
-            <span>Select</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" value="delete" name="tapState" v-model="tapState" @change="onTapStateChange">
-            <span>Delete</span>
-          </label>
-        </div>
-      </div>
-      <div class="control tool-mode">
-        <label>Edit Mode</label>
-        <div class="horizontal-radios">
-          <label class="radio-label">
-            <input type="radio" value="normal" checked name="editMode" v-model="editMode" @change="onEditModeChange">
-            <span>Normal</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" value="quick" name="editMode" v-model="editMode" @change="onEditModeChange">
-            <span>Quick</span>
-          </label>
-        </div>
-      </div>
-      <div class="control creation-tile-type" :class="{ enabled: tapState === 'create' }">
-        <label>Creation Tile Type</label>
-        <div class="list-radios">
-          <label class="radio-label">
-            <input type="radio" value="first" checked name="creationTileType" v-model="creationTileType">
-            <span>Floor</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" value="second" name="creationTileType" v-model="creationTileType">
-            <span>Wall</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" value="third" name="creationTileType" v-model="creationTileType">
-            <span>Door</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" value="fourth" name="creationTileType" v-model="creationTileType">
-            <span>Water</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" value="fifth" name="creationTileType" v-model="creationTileType">
-            <span>Pit</span>
-          </label>
-        </div>
-      </div>
-      <div class="control">
-        <button class="reset-button" @click="resetAllTiles">Reset tile position!</button>
-      </div>
-      <div class="control selected-tile-actions" :class="{ 'has-selection': selectedTile }">
-        <span class="selected-tile-label">{{ selectedTile }}</span>
-        <button class="rotate-tile" @click="onRotateTile">Rotate</button>
-      </div>
-      <div class="control hero-action">
-        <label>Add hero to selected tile</label>
-        <button class="place-hero" @click="onPlaceHero">Place Hero</button>
-        <div class="d-pad">
-          <button class="rotate-hero-left">&larr;</button>
-          <button class="rotate-hero-right">&rarr;</button>
-          <button class="move-hero-forward">&uarr;</button>
-          <button class="move-hero-backward">&darr;</button>
-          <label class="enable-wasd toggle-check-label">
-            <input type="checkbox" value="true" name="enableWASD">
-            <span>Enable WASD</span>
-          </label>
-        </div>
-      </div>
-      <div class="control">
-        <button class="go-fullscreen" @click="fullscreenMap">Go Fullscreen</button>
-      </div>
-      <div class="control">
-        <button class="save" @click="saveMap">Save!</button>
-      </div>
-    </div>
+    <div id="scene-container" ref="sceneContainer"></div>
+    <div class="stats-container" ref="statsContainer"></div>
   </div>
 </template>
 
@@ -102,18 +14,14 @@ import Stats from 'stats.js'
 import * as TWEEN from 'es6-tween'
 import * as Hammer from 'hammerjs'
 
-import { deconstructTileStringId, setMouse, degToRad, setPan } from './helpers'
+import { setMouse, degToRad } from './helpers'
 import { loadTileTextures } from './loadTextures'
-// import { rotateModel, moveForward, moveBackward } from './heroActions'
 import { onModelLoad, onModelProgress, onModelError } from './modelHelpers'
 import {
   toggleTileActiveState,
   getTilePosition,
-  getSelectedTilePosition,
-  hideRollOver,
-  getTileRotation
+  hideRollOver
 } from './tileActions'
-import { tweenActiveTileToggle } from './tweens'
 
 export default {
   name: 'threejs-map-renderer',
@@ -129,20 +37,23 @@ export default {
   data () {
     return {
       id: this.$route.params.id,
-      container: null,
-      camera: null,
-      controls: null,
-      renderer: null,
-      scene: null,
-      mesh: null,
-      geometries: null,
-      materials: null,
-      selectionHighlighter: null,
-      boardGroup: null,
-      characterGroup: null,
       tilesNumber: this.map.tilesWidth,
       // tilesNumber: this.map.tilesWidth,
       stats: null,
+      wasdEnabled: false,
+      showControls: true,
+      stopScene: false,
+
+      // three map objects
+      container: null,
+      camera: null,
+      renderer: null,
+      scene: null,
+      geometries: null,
+      materials: null,
+      boardGroup: null,
+
+      // three helper ojects
       backgroundColor: new THREE.Color(0x8fbcd4),
       rollOverGeo: null,
       rollOverMaterial: null,
@@ -154,20 +65,41 @@ export default {
       rolloverOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       initialTileOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       matrix: new THREE.Matrix4(),
-      instanceMatrix: new THREE.Matrix4(),
-      tapState: 'activate',
-      creationTileType: 'first',
-      editMode: 'normal',
-      wasdEnabled: false,
-      showControls: true,
-      hammerContainer: null
+      instanceMatrix: new THREE.Matrix4()
     }
   },
   computed: {
     ...mapGetters('threeMap', {
       instancedMeshesVuex: 'instancedMeshes',
-      selectedTile: 'selectedTile'
+      selectedTile: 'selectedTile',
+      controls: 'controls',
+      selectionHighlighter: 'selectionHighlighter',
+      characterGroup: 'characterGroup'
     }),
+    editMode: {
+      get () {
+        return this.$store.state.threeMap.editMode
+      },
+      set (editMode) {
+        this.$store.dispatch('threeMap/setEditMode', editMode)
+      }
+    },
+    editTool: {
+      get () {
+        return this.$store.state.threeMap.editTool
+      },
+      set (editTool) {
+        this.$store.dispatch('threeMap/setEditTool', editTool)
+      }
+    },
+    creationTileType: {
+      get () {
+        return this.$store.state.threeMap.creationTileType
+      },
+      set (tileType) {
+        this.$store.dispatch('threeMap/setCreationTileType', tileType)
+      }
+    },
     checkerboardSize () {
       return this.tilesNumber % 4 === 0 ? this.tilesNumber : this.tilesNumber + 4 - (this.tilesNumber % 4)
     },
@@ -181,10 +113,12 @@ export default {
      * Init scene
      */
     init () {
-      this.stats = new Stats() // <-- remove me
-      document.body.appendChild(this.stats.dom) // <-- remove me
+      // TODO: only show stats in dev
+      this.stats = new Stats()
+      this.stats.dom.style.removeProperty('position')
+      this.$refs.statsContainer.appendChild(this.stats.dom)
 
-      this.container = document.querySelector('#scene-container')
+      this.container = this.$refs.sceneContainer
 
       this.scene = new THREE.Scene()
       this.scene.background = this.backgroundColor
@@ -207,6 +141,10 @@ export default {
       this.createRenderer()
 
       this.renderer.setAnimationLoop((time) => {
+        if (this.stopScene) {
+          return null
+        }
+
         this.update(time)
         this.render()
       })
@@ -228,13 +166,14 @@ export default {
      * Create the camera map controls
      */
     createControls () {
-      this.controls = new MapControls(this.camera, this.container)
-      this.controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
-      this.controls.dampingFactor = 0.15
-      this.controls.screenSpacePanning = false
-      this.controls.minDistance = 4
-      this.controls.maxDistance = 50
-      this.controls.maxPolarAngle = Math.PI / 2.2
+      let controls = new MapControls(this.camera, this.container)
+      controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
+      controls.dampingFactor = 0.15
+      controls.screenSpacePanning = false
+      controls.minDistance = 4
+      controls.maxDistance = 50
+      controls.maxPolarAngle = Math.PI / 2.2
+      this.$store.dispatch('threeMap/setControls', controls)
     },
     /**
      * Create lights
@@ -260,13 +199,15 @@ export default {
       const loader = new GLTFLoader()
 
       // Load 90s dad
-      this.characterGroup = new THREE.Group()
-      this.characterGroup.name = 'character_group'
+      const characterGroup = new THREE.Group()
+      characterGroup.name = 'character_group'
 
       // Hide 90s dad under board (TODO: figure out if he can be loaded without being added)
-      this.characterGroup.position.set(0.5, -5, 0.5)
+      characterGroup.position.set(0.5, -5, 0.5)
 
-      this.boardGroup.add(this.characterGroup)
+      this.$store.dispatch('threeMap/setCharacterGroup', characterGroup)
+
+      this.boardGroup.add(characterGroup)
 
       // Load 90s dad
       const dadMatrix = new THREE.Matrix4()
@@ -445,6 +386,7 @@ export default {
 
       /** Create Tiles Instanced - Start */
       let count = this.tilesNumber * this.tilesNumber
+
       // arbitrary constnat at this point
       let buildingMeshes = {
         first: {},
@@ -494,13 +436,14 @@ export default {
       }
 
       // Create and add the selection mesh
-      this.selectionHighlighter = new THREE.Mesh(this.geometries.cone, this.materials.tile)
+      const selectionHighlighter = new THREE.Mesh(this.geometries.cone, this.materials.tile)
 
-      this.selectionHighlighter.position.set(0, 0.85, 0)
-      this.selectionHighlighter.rotation.set(Math.PI, 0, 0)
-      this.selectionHighlighter.visible = false
+      selectionHighlighter.position.set(0, 0.85, 0)
+      selectionHighlighter.rotation.set(Math.PI, 0, 0)
+      selectionHighlighter.visible = false
 
-      this.boardGroup.add(this.selectionHighlighter)
+      this.boardGroup.add(selectionHighlighter)
+      this.$store.dispatch('threeMap/setSelectionHighlighter', selectionHighlighter)
     },
     /**
      * Create renderer
@@ -544,20 +487,6 @@ export default {
       this.stats.update()
     },
     /**
-     * Reset all tiles
-     */
-    resetAllTiles () {
-      let instancedMeshNames = Object.keys(this.instancedMeshesVuex)
-      instancedMeshNames.forEach(name => {
-        let instanceKeys = Object.keys(this.instancedMeshesVuex[name].mesh.userData)
-        instanceKeys.forEach(instanceId => {
-          if (this.instancedMeshesVuex[name].mesh.userData[instanceId].isActive) {
-            tweenActiveTileToggle(this.instancedMeshesVuex[name].mesh, instanceId, false)
-          }
-        })
-      })
-    },
-    /**
      * resize canvas helper
      */
     onWindowResize () {
@@ -589,19 +518,19 @@ export default {
       if (hasHitTile) {
         const name = intersects[0].object.name
         const instanceId = intersects[0].instanceId
-        if (event.shiftKey || this.tapState === 'delete') {
+        if (event.shiftKey || this.editTool === 'delete') {
           // When shift key is pressed or in delete mode, "delete"
           this.$store.dispatch('threeMap/deleteInstance', { name, instanceId })
-        } else if (this.tapState === 'select') {
+        } else if (this.editTool === 'select') {
           this.selectTile(name, instanceId)
-        } else if (this.tapState === 'activate') {
+        } else if (this.editTool === 'activate') {
           // no shift key, activate
           toggleTileActiveState(name, instanceId, this.instancedMeshesVuex[name].mesh)
         }
       }
 
       // "unoccupied" board spaces intersections
-      if (this.tapState === 'create' && this.creationTileType !== null && !hasHitTile) {
+      if (this.editTool === 'create' && this.creationTileType !== null && !hasHitTile) {
         this.raycaster.setFromCamera(this.mouse, this.camera)
 
         let objectsIntersects = this.raycaster.intersectObjects(this.objects, true)
@@ -655,6 +584,7 @@ export default {
      * Hammer pan
      */
     onHammerPan (hammerEvent) {
+      console.log('in renderer on hammer pan')
       this.onMouseClick(hammerEvent.srcEvent)
     },
     selectTile (name, instanceId) {
@@ -664,17 +594,7 @@ export default {
       // get position of selected tile and assign marker to that position
       let positionVec = getTilePosition(name, instanceId, this.instancedMeshesVuex)
       const currentY = this.selectionHighlighter.position.y
-      this.selectionHighlighter.position.set(positionVec.x, currentY, positionVec.z)
-      this.selectionHighlighter.visible = true
-    },
-    addModelToSelectedTile () {
-      if (this.selectedTile) {
-        let v = getSelectedTilePosition(this.selectedTile, this.instancedMeshesVuex)
-        v.y = 0.25
-        this.characterGroup.position.set(v.x, v.y, v.z)
-      } else {
-        alert('You must select a tile!')
-      }
+      this.$store.dispatch('threeMap/highlighterTargetTile', { x: positionVec.x, y: currentY, z: positionVec.z })
     },
     addTileByType (type, position) {
       if (this.instancedMeshesVuex.hasOwnProperty(type)) {
@@ -686,85 +606,50 @@ export default {
     toggleControlsVisibility () {
       this.showControls = !this.showControls
     },
-    onTapStateChange (event) {
-      if (this.tapState !== 'select') {
-        this.$store.dispatch('threeMap/clearTileSelection')
-        this.selectionHighlighter.visible = false
-      }
-    },
-    onEditModeChange () {
-      // Enable or disable pan based on editor mode
-      if (this.editMode === 'quick') {
-        setPan(this.controls, false)
-        this.hammerContainer.on('pan', this.onHammerPan)
-      } else {
-        setPan(this.controls, true)
-        this.hammerContainer.off('pan', this.onHammerPan)
-      }
-    },
-    onRotateTile () {
-      let { name, instanceId } = deconstructTileStringId(this.selectedTile)
-      this.$store.dispatch('threeMap/rotateInstance', { name, instanceId })
-    },
-    onPlaceHero () {
-      this.addModelToSelectedTile()
-    },
-    fullscreenMap () {
-      this.goFullscreen(document.body)
-    },
-    goFullscreen (elem) {
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen()
-      } else if (elem.mozRequestFullScreen) {
-        /* Firefox */
-        elem.mozRequestFullScreen()
-      } else if (elem.webkitRequestFullscreen) {
-        /* Chrome, Safari and Opera */
-        elem.webkitRequestFullscreen()
-      } else if (elem.msRequestFullscreen) {
-        /* IE/Edge */
-        elem.msRequestFullscreen()
-      }
-    },
     getInstancedMeshKeyByIndex (index) {
       return Object.keys(this.instancedMeshesVuex)[index]
     },
-    saveMap () {
-      // Get all of the instanced mesh keys
-      let instancedMeshNamnes = Object.keys(this.instancedMeshesVuex)
-      let tilesToSave = []
-      instancedMeshNamnes.forEach(name => {
-        // Set mesh name
-        let instanceKeys = Object.keys(this.instancedMeshesVuex[name].mesh.userData)
-        instanceKeys.forEach(instanceId => {
-          if (this.instancedMeshesVuex[name].mesh.userData[instanceId.toString()].exists) {
-            const vec = getTilePosition(name, instanceId, this.instancedMeshesVuex)
-            let tile = {
-              type: name,
-              position: { x: vec.x, y: vec.y, z: vec.z },
-              rotation: getTileRotation(name, instanceId, this.instancedMeshesVuex)
-            }
-            console.log('tile to save', tile)
-            tilesToSave.push(tile)
-          }
-        })
-      })
+    disposeScene () {
+      this.stopScene = true
 
-      let copiedMapData = JSON.parse(JSON.stringify(this.map))
-      copiedMapData.threejsTiles = tilesToSave
-      // Save map: Update action
-      this.$store.dispatch('map/updateMap', {
-        id: this.id,
-        dataToUpdate: copiedMapData
+      this.controls.dispose()
+      this.scene.traverse(object => {
+        if (!object.isMesh) return
+
+        object.geometry.dispose()
+
+        if (object.material.isMaterial) {
+          this.cleanMaterial(object.material)
+        } else {
+          // an array of materials
+          for (const material of object.material) this.cleanMaterial(material)
+        }
       })
+      this.scene = null
+    },
+    cleanMaterial (material) {
+      material.dispose()
+
+      // dispose textures
+      for (const key of Object.keys(material)) {
+        const value = material[key]
+        if (value && typeof value === 'object' && 'minFilter' in value) {
+          value.dispose()
+        }
+      }
     }
   },
-  created () {
-  },
   destroyed () {
+    // Remove our manually added event listeners
     window.removeEventListener('resize', this.onWindowResize)
     window.removeEventListener('onorientationchange', this.onWindowResize)
     window.removeEventListener('mousemove', this.onDocumentMouseMove, false)
+
+    // Remove all local objects
+    this.disposeScene()
+
+    // Clear vuex three relatetd map state
+    this.$store.dispatch('threeMap/destroy')
   },
   mounted () {
     // Set everything up
@@ -775,32 +660,29 @@ export default {
     window.addEventListener('onorientationchange', this.onWindowResize)
     window.addEventListener('mousemove', this.onDocumentMouseMove, false)
 
-    // EVENTS
+    // Add hammertime with tap and pan (disabled by default)
+    const hammerManager = new Hammer.Manager(this.container, {
+      recognizers: [
+        [Hammer.Tap],
+        [Hammer.Pan, { enable: false }]
+      ]
+    })
 
-    // Add hammertime
-    this.hammerContainer = new Hammer.Manager(this.container)
-    let Tap = new Hammer.Tap()
-    let Pan = new Hammer.Pan()
-    this.hammerContainer.add(Tap)
-    this.hammerContainer.add(Pan)
-    this.hammerContainer.on('tap', (e) => {
+    // Add tap listener
+    hammerManager.on('tap', e => {
       this.onMouseClick(e.srcEvent)
     })
+
+    // Add pan listener
+    hammerManager.on('pan', this.onHammerPan)
+
+    // Initialize the hammer manager in vuex
+    this.$store.dispatch('threeMap/initHammerManager', hammerManager)
   }
 }
 </script>
 
 <style lang="scss">
-@keyframes pulsebg {
-  0% {
-    background: #fff;
-  }
-
-  100% {
-    background: #beb6ce;
-  }
-}
-
 #scene-container {
   position: absolute;
   height: 100%;
@@ -808,180 +690,9 @@ export default {
   overflow: hidden;
 }
 
-button {
-  cursor: pointer;
-}
-
-.ui-elements {
+.stats-container {
   position: absolute;
-  z-index: 1;
-  top: 0;
-  right: 0;
-  width: 200px;
-  border: 2px solid #232323;
-  background: white;
-  padding: 5px;
-  font-size: 14px;
-  font-family: Helvetica, sans-serif;
-  transform: translateX(180px);
-  transition: transform 300ms ease;
-}
-
-.ui-elements.show-controls {
-  transform: translateX(0);
-}
-
-.controls-toggle {
-  color: transparent;
-  font-size: 0;
-  height: 20px;
-  width: 20px;
-  padding: 0;
-  text-align: center;
-  border-color: purple;
-}
-
-.controls-toggle:before {
-  content: '\2190';
-  color: purple;
-  font-size: 12px;
-  line-height: 20px;
-}
-
-.ui-elements.show-controls .controls-toggle:before {
-  content: '\2192';
-}
-
-.control {
-  padding: 10px;
-  border: 1px solid pink;
-}
-
-.control:not(:first-child) {
-  margin-top: 10px;
-}
-
-.toggle-check-label {
-  display: block;
-  position: relative;
-  font-size: 12px;
-}
-
-.toggle-check-label span {
-  display: block;
-  padding: 4px;
-  border: 2px solid purple;
-  background: #fff;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.toggle-check-label input:checked+span {
-  animation: pulsebg infinite 0.5s alternate linear;
-}
-
-.horizontal-radios {
-  display: flex;
-}
-
-.horizontal-radios .radio-label {
-  display: block;
-  position: relative;
-  font-size: 12px;
-}
-
-.horizontal-radios .radio-label input,
-.toggle-check-label input {
-  position: absolute;
-  left: 5px;
-  bottom: 2px;
-  font-size: 0;
-  z-index: -1;
-}
-
-.horizontal-radios .radio-label span {
-  display: block;
-  background: #fff;
-  padding: 2px;
-  border: 1px solid purple;
-  cursor: pointer;
-}
-
-.horizontal-radios .radio-label:not(:first-child) span {
-  border-left: none;
-}
-
-.horizontal-radios .radio-label input:checked+span {
-  background-color: #beb6ce;
-}
-
-.list-radios {
-  font-size: 12px;
-}
-
-.list-radios label {
-  display: block;
-}
-
-.selected-tile-actions {
-  display: none;
-}
-
-.selected-tile-actions.has-selection {
-  display: block;
-}
-
-.creation-tile-type {
-  display: none;
-}
-
-.creation-tile-type.enabled {
-  display: block;
-}
-
-.d-pad {
-  display: grid;
-  width: 80px;
-  grid-template-columns: 1fr 1fr 1fr 60px;
-  grid-template-rows: 20px 20px;
-  grid-column-gap: 4px;
-  grid-row-gap: 4px;
-}
-
-.d-pad button {
-  background: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  margin: 0;
-  padding: 2px;
-  border-radius: 5px;
-  font-size: 14px;
-  line-height: 1;
-}
-
-.rotate-hero-right {
-  grid-column: 3 / 4;
-  grid-row: 2 / 3;
-}
-
-.rotate-hero-left {
-  grid-column: 1 / 2;
-  grid-row: 2 / 3;
-}
-
-.move-hero-forward {
-  grid-column: 2 / 3;
-  grid-row: 1 / 2;
-}
-
-.move-hero-backward {
-  grid-column: 2 / 3;
-  grid-row: 2 / 3;
-}
-
-.enable-wasd {
-  grid-column: 4 / 5;
-  grid-row: 1 / 3;
+  bottom: 0;
+  left: 0;
 }
 </style>

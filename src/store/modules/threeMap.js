@@ -4,6 +4,7 @@
  * state only.
  */
 import * as THREE from 'three'
+import { setPan } from '@/components/threejs/MapRenderer/helpers'
 
 // Helpers
 let instanceMatrix = new THREE.Matrix4()
@@ -12,16 +13,55 @@ let rotationMatrix = new THREE.Matrix4().makeRotationY(Math.PI / 2)
 let hideMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
 
 const state = {
-  instancedMeshes: {},
-  selectedTile: null
+  // Global stuff
+  hammerManager: null,
+
+  // Mesh stuff
+  instancedMeshes: null,
+  selectedTile: null,
+  characterGroup: null,
+  controls: null,
+  selectionHighlighter: null,
+
+  // Tools
+  editMode: 'normal',
+  editTool: 'activate',
+  creationTileType: 'first'
 }
 
 const getters = {
+  hammerManager: state => state.hammerManager,
   instancedMeshes: state => state.instancedMeshes,
-  selectedTile: state => state.selectedTile
+  selectedTile: state => state.selectedTile,
+  characterGroup: state => state.characterGroup,
+  controls: state => state.controls,
+  selectionHighlighter: state => state.selectionHighlighter,
+  editMode: state => state.editMode,
+  editTool: state => state.editTool,
+  creationTileType: state => state.creationTileType
 }
 
 const mutations = {
+  // Global mutations
+  clearMap: (state) => {
+    state.instancedMeshes = null
+    state.selectedTile = null
+    state.characterGroup = null
+    state.controls = null
+    state.selectionHighlighter = null
+  },
+  initHammerManager: (state, hammerManager) => {
+    state.hammerManager = hammerManager
+  },
+  setHammerPan: (state, enableHammerPan) => {
+    state.hammerManager.get('pan').set({ enable: enableHammerPan })
+  },
+  destroyHammerManager: (state) => {
+    state.hammerManager.destroy()
+    state.hammerManager = null
+  },
+
+  // Meshes related
   setMeshes: (state, meshes) => {
     state.instancedMeshes = meshes
   },
@@ -59,10 +99,55 @@ const mutations = {
   },
   clearTileSelection: (state) => {
     state.selectedTile = null
+    state.selectionHighlighter.visible = false
+  },
+
+  // Extra map related objects
+  setSelectionHighlighter: (state, highlighter) => {
+    state.selectionHighlighter = highlighter
+  },
+  highlighterTargetTile: (state, pos) => {
+    state.selectionHighlighter.position.set(pos.x, pos.y, pos.z)
+    state.selectionHighlighter.visible = true
+  },
+
+  // Controls
+  setControls: (state, controls) => {
+    state.controls = controls
+  },
+  setControlsPan: (state, enable) => {
+    setPan(state.controls, enable)
+  },
+  setCharacterGroup: (state, group) => {
+    state.characterGroup = group
+  },
+  setCharacterPosition: (state, { x, y, z }) => {
+    state.characterGroup.position.set(x, y, z)
+  },
+
+  // Tools
+  setEditMode: (state, mode) => {
+    state.editMode = mode
+  },
+  setEditTool: (state, editTool) => {
+    state.editTool = editTool
+  },
+  setCreationTileType: (state, tileType) => {
+    state.creationTileType = tileType
   }
 }
 
 const actions = {
+  // Global actions
+  destroy: ({ commit }) => {
+    commit('clearMap')
+    commit('destroyHammerManager')
+  },
+  initHammerManager: ({ commit }, hammerManager) => {
+    commit('initHammerManager', hammerManager)
+  },
+
+  // Meshes related
   setMeshes: ({ commit }, meshes) => {
     commit('setMeshes', meshes)
   },
@@ -80,6 +165,46 @@ const actions = {
   },
   clearTileSelection: ({ commit }) => {
     commit('clearTileSelection')
+  },
+
+  // Extra map related objects
+  setSelectionHighlighter: ({ commit }, highlighter) => {
+    commit('setSelectionHighlighter', highlighter)
+  },
+  highlighterTargetTile: ({ commit }, pos) => {
+    commit('highlighterTargetTile', pos)
+  },
+  setCharacterGroup: ({ commit }, group) => {
+    commit('setCharacterGroup', group)
+  },
+  setCharacterPosition: ({ commit }, pos) => {
+    commit('setCharacterPosition', pos)
+  },
+
+  // Controls
+  setControls: ({ commit }, controls) => {
+    commit('setControls', controls)
+  },
+  setControlsPan: ({ commit }, enable) => {
+    commit('setControlsPan', enable)
+  },
+
+  // Tools
+  setEditMode: ({ commit }, mode) => {
+    commit('setEditMode', mode)
+    if (mode === 'quick') {
+      commit('setControlsPan', false)
+      commit('setHammerPan', true)
+    } else {
+      commit('setControlsPan', true)
+      commit('setHammerPan', false)
+    }
+  },
+  setEditTool: ({ commit }, editTool) => {
+    commit('setEditTool', editTool)
+  },
+  setCreationTileType: ({ commit }, tileType) => {
+    commit('setCreationTileType', tileType)
   }
 }
 
