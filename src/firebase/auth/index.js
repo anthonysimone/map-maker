@@ -10,7 +10,6 @@ const auth = {
   ui: null,
 
   init (context) {
-    console.log('context on init', context)
     this.context = context
     this.uiConfig = {
       signInSuccessUrl: 'dashboard',
@@ -23,7 +22,6 @@ const auth = {
     }
     this.ui = new firebaseui.auth.AuthUI(firebase.auth())
     firebase.auth().onAuthStateChanged((user) => {
-      console.log('auth change', user)
       if (user && this.isNewUser(user)) {
         Users.getUser(user.uid).then((querySnapshot) => {
           if (!querySnapshot.exists) {
@@ -63,7 +61,7 @@ const auth = {
     this.ui.start(container, this.uiConfig)
   },
   user () {
-    return this.context ? firebase.auth().currentUser : null
+    return firebase.auth().currentUser
   },
   logout () {
     // TODO: not sure if I need to actually clean up the log out here

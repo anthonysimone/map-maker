@@ -1,17 +1,18 @@
 <template>
   <div id="app">
-
-    <template v-if="layout === 'map-layout'">
-      <component :is="layout">
-        <router-view/>
-      </component>
-    </template>
-    <template v-else>
-      <component :is="layout">
-        <div class="main-content">
+    <template v-if="layout">
+      <template v-if="layout === 'map-layout'">
+        <component :is="layout">
           <router-view/>
-        </div>
-      </component>
+        </component>
+      </template>
+      <template v-else>
+        <component :is="layout">
+          <div class="main-content">
+            <router-view/>
+          </div>
+        </component>
+      </template>
     </template>
 
     <v-dialog></v-dialog>
@@ -27,9 +28,15 @@ export default {
     SiteNavigation,
     SiteFooter
   },
+  data () {
+    return {
+      route: this.$route
+    }
+  },
   computed: {
     layout () {
-      return this.$route.meta.layout || 'site-default-layout'
+      // Only set a layout once the route has resolve, else things are loading
+      return this.$route.name ? (this.$route.meta.layout || 'site-default-layout') : null
     }
   }
 }

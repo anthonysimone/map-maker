@@ -96,7 +96,6 @@ router.beforeEach((to, from, next) => {
   let currentUser = auth.user()
   let requireAuth = to.matched.some(record => record.meta.requireAuth)
   let guestOnly = to.matched.some(record => record.meta.guestOnly)
-  console.log('beforeEach router event', currentUser)
 
   if (requireAuth && !currentUser) next('sign-in')
   else if (guestOnly && currentUser) next('dashboard')

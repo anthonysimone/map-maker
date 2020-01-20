@@ -21,7 +21,7 @@ const mutations = {
   },
   setUserProfile: (state, userProfile) => {
     state.userProfile = userProfile
-  },
+  }
   // updateUserProfile: (state, updatedUserProfile) => {
   //   Object.assign(state.userProfile, updatedUserProfile)
   // }

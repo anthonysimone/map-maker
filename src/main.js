@@ -4,6 +4,7 @@ import { router } from './router'
 import store from '@/store'
 
 import auth from '@/firebase/auth/index'
+import * as firebase from 'firebase/app'
 // import db from '@/firebase/firestore/index'
 
 import VModal from 'vue-js-modal'
@@ -24,11 +25,17 @@ Vue.component('site-default-layout', SiteDefaultLayout)
 Vue.component('map-layout', MapLayout)
 Vue.component('webglmap-layout', WebglmapLayout)
 
-new Vue({
-  router,
-  store,
-  beforeCreate () {
-    auth.init(this)
-  },
-  render: h => h(App)
-}).$mount('#app')
+let app
+
+firebase.auth().onAuthStateChanged((user) => {
+  if (!app) {
+    app = new Vue({
+      router,
+      store,
+      beforeCreate () {
+        auth.init(this)
+      },
+      render: h => h(App)
+    }).$mount('#app')
+  }
+})
