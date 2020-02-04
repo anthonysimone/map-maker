@@ -1,13 +1,14 @@
 <template>
   <div class="map-editor">
     <div class="editor-toolbar">
-      <h1>Edit: {{ editableMapData.name }}</h1>
-      <router-link class="button is-primary is-small edit-map" :to="{name: 'dashboard'}">Dashboard</router-link>
+      <editor-toolbar :map="map" @saveMap="saveMap"></editor-toolbar>
     </div>
     <threejs-map-renderer :map="map"></threejs-map-renderer>
     <div class="editor-panel-container" :class="{'is-active': showEditorPanel }">
       <button class="side-panel-toggle" @click="toggleEditorPanel">Toggle Controls</button>
-      <editor-side-panel @saveMap="saveMap"></editor-side-panel>
+      <div class="editor-panel-content">
+        <editor-side-panel></editor-side-panel>
+      </div>
     </div>
   </div>
 </template>
@@ -17,12 +18,14 @@ import { mapGetters } from 'vuex'
 
 import ThreejsMapRenderer from '@/components/threejs/MapRenderer/ThreejsMapRenderer'
 import EditorSidePanel from '@/components/map/editor/EditorSidePanel'
+import EditorToolbar from '@/components/map/editor/EditorToolbar'
 
 export default {
   name: 'map-editor',
   components: {
     ThreejsMapRenderer,
-    EditorSidePanel
+    EditorSidePanel,
+    EditorToolbar
   },
   data () {
     return {
@@ -79,6 +82,9 @@ export default {
 }
 
 .side-panel-toggle {
+  position: absolute;
+  top: 0;
+  right: 100%;
   color: transparent;
   font-size: 0;
   height: 20px;
@@ -101,12 +107,11 @@ export default {
 .editor-panel-container {
   position: absolute;
   z-index: 20;
-  top: 0;
+  bottom: 0;
   right: 0;
   width: 200px;
-  border: 2px solid #232323;
+  height: calc(100% - 60px);
   background: white;
-  padding: 5px;
   font-size: 14px;
   font-family: Helvetica, sans-serif;
   transform: translateX(170px);
@@ -115,5 +120,12 @@ export default {
   &.is-active {
     transform: translateX(0);
   }
+}
+
+.editor-panel-content {
+  height: 100%;
+  overflow: auto;
+  padding: 5px;
+  border: 2px solid #232323;
 }
 </style>

@@ -43,15 +43,18 @@ export default {
       wasdEnabled: false,
       showControls: true,
       stopScene: false,
+      clock: null,
 
       // three map objects
       container: null,
       camera: null,
       renderer: null,
-      scene: null,
       geometries: null,
       materials: null,
       boardGroup: null,
+
+      // animation helpers
+      mixers: [],
 
       // three helper ojects
       backgroundColor: new THREE.Color(0x8fbcd4),
@@ -70,11 +73,13 @@ export default {
   },
   computed: {
     ...mapGetters('threeMap', {
+      scene: 'scene',
       instancedMeshesVuex: 'instancedMeshes',
       selectedTile: 'selectedTile',
       controls: 'controls',
       selectionHighlighter: 'selectionHighlighter',
-      characterGroup: 'characterGroup'
+      dadGroup: 'dadGroup',
+      modelGroups: 'modelGroups'
     }),
     editMode: {
       get () {
@@ -120,8 +125,11 @@ export default {
 
       this.container = this.$refs.sceneContainer
 
-      this.scene = new THREE.Scene()
-      this.scene.background = this.backgroundColor
+      const scene = new THREE.Scene()
+      scene.background = this.backgroundColor
+      this.$store.dispatch('threeMap/setScene', scene)
+
+      this.clock = new THREE.Clock()
 
       // add fog
       // this.scene.fog = new THREE.Fog(this.backgroundColor, 20, 22)
@@ -132,12 +140,15 @@ export default {
 
       this.createGrid()
 
+      // Create board
+
       this.materials = this.createMaterials()
       this.geometries = this.createGeometries()
 
       this.createMeshes()
 
-      this.loadCharacterModel()
+      this.loadDadModel()
+      this.loadRobotModel()
       this.createRenderer()
 
       this.renderer.setAnimationLoop((time) => {
@@ -193,49 +204,49 @@ export default {
       this.scene.add(ambientLight, mainLight)
     },
     /**
-     * Load Models
+     * Generic load model method using the service setup via veux
+     * TODO: does this still need to be / should this still be async?
      */
-    loadCharacterModel () {
-      const loader = new GLTFLoader()
+    async loadModelAsync (modelKey, position) {
+      await this.$store.dispatch('threeMap/loadModelObject', {
+        modelKey: modelKey,
+        position
+      })
+    },
+    /**
+     * Load Robot Model
+     */
+    loadRobotModel () {
+      this.loadModelAsync('robot', { x: 0.5, y: 0.25, z: 0.5 })
+    },
+    /**
+     * Load Models
+     * TODO: Refactor 90s dad to use loadModelAsync function
+     */
+    loadDadModel () {
+      this.loadModelAsync('dad', { x: 1.5, y: 0.25, z: 1.5 })
 
-      // Load 90s dad
-      const characterGroup = new THREE.Group()
-      characterGroup.name = 'character_group'
-
-      // Hide 90s dad under board (TODO: figure out if he can be loaded without being added)
-      characterGroup.position.set(0.5, -5, 0.5)
-
-      this.$store.dispatch('threeMap/setCharacterGroup', characterGroup)
-
-      this.boardGroup.add(characterGroup)
-
-      // Load 90s dad
-      const dadMatrix = new THREE.Matrix4()
-      dadMatrix.makeScale(0.125, 0.125, 0.125)
-      dadMatrix.setPosition(0, 0, 0)
-      loader.load(
-        '/threejs/models/90s_dad/scene.gltf',
-        gltf => onModelLoad(gltf, this.characterGroup, dadMatrix),
-        onModelProgress,
-        onModelError
-      )
-
-      // Load 90s dad's sword
-      const swordMatrix = new THREE.Matrix4()
-      swordMatrix.makeRotationFromEuler(new THREE.Euler(degToRad(70), degToRad(15), degToRad(-80), 'XYZ'))
-      swordMatrix.multiply(this.matrix.makeScale(0.4, 0.4, 0.4))
-      swordMatrix.setPosition(0.17, 0.71, 0.175)
-      loader.load(
-        '/threejs/models/medieval_sword/scene.gltf',
-        gltf => onModelLoad(gltf, this.characterGroup, swordMatrix),
-        onModelProgress,
-        onModelError
-      )
+      // // Load 90s dad's sword, maybe update this later
+      // const swordMatrix = new THREE.Matrix4()
+      // swordMatrix.makeRotationFromEuler(new THREE.Euler(degToRad(70), degToRad(15), degToRad(-80), 'XYZ'))
+      // swordMatrix.multiply(this.matrix.makeScale(0.4, 0.4, 0.4))
+      // swordMatrix.setPosition(0.17, 0.71, 0.175)
+      // loader.load(
+      //   '/threejs/models/medieval_sword/scene.gltf',
+      //   gltf => onModelLoad(gltf, this.dadGroup, swordMatrix),
+      //   onModelProgress,
+      //   onModelError
+      // )
     },
     /**
      * Create grid
      */
     createGrid () {
+      // Initialize Grid
+      // new SquareGrid(length, width)
+      // cell - this handles gameplay things (walkability, pathfinding details, position)
+      // tile - the actual threejs instance of an instanced mesh
+
       // Add grid group
       const gridGroup = new THREE.Group()
 
@@ -472,6 +483,14 @@ export default {
     update (time) {
       TWEEN.update()
       this.controls.update()
+
+      // Handle updating objects with animation mixers
+      let dt = this.clock.getDelta()
+      if (this.mixers.length) {
+        this.mixers.forEach(mixer => {
+          mixer.update(dt)
+        })
+      }
 
       if (this.selectionHighlighter.visible) {
         this.selectionHighlighter.rotateY(0.02)

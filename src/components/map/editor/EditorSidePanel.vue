@@ -1,39 +1,7 @@
 <template>
   <div class="editor-panel">
-    <div class="control">
-      <label>Tool</label>
-      <div class="tool-state horizontal-radios">
-        <label class="radio-label">
-          <input type="radio" value="activate" checked name="editTool" v-model="editTool" @change="onEditToolChange">
-          <span>Activate</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="create" name="editTool" v-model="editTool" @change="onEditToolChange">
-          <span>Create</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="select" name="editTool" v-model="editTool" @change="onEditToolChange">
-          <span>Select</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="delete" name="editTool" v-model="editTool" @change="onEditToolChange">
-          <span>Delete</span>
-        </label>
-      </div>
-    </div>
-    <div class="control tool-mode">
-      <label>Edit Mode</label>
-      <div class="horizontal-radios">
-        <label class="radio-label">
-          <input type="radio" value="normal" checked name="editMode" v-model="editMode">
-          <span>Normal</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="quick" name="editMode" v-model="editMode">
-          <span>Quick</span>
-        </label>
-      </div>
-    </div>
+
+    <!-- Create tool contextual controls -->
     <div class="control creation-tile-type" :class="{ enabled: editTool === 'create' }">
       <label>Creation Tile Type</label>
       <div class="list-radios">
@@ -59,15 +27,23 @@
         </label>
       </div>
     </div>
-    <div class="control">
-      <button class="reset-button" @click="resetAllTiles">Reset tile position!</button>
-    </div>
-    <div class="control selected-tile-actions" :class="{ 'has-selection': selectedTile }">
-      <span class="selected-tile-label">{{ selectedTile }}</span>
-      <button class="rotate-tile" @click="onRotateTile">Rotate</button>
-    </div>
+
+    <!-- Select tool contextual controls -->
+    <section class="contextual-controls selected-tile-actions" :class="{ 'has-selection': selectedTile }">
+      <h3>Selected Tile: {{ selectedTile }}</h3>
+      <div class="control">
+        <span class="selected-tile-label button-group-label">Rotate</span>
+        <button @click="onRotateTile" class="button is-small" content="Rotate counter clockwise" v-tippy="{ placement : 'bottom',  arrow: true }">
+          <span class="icon is-small">
+            <font-awesome-icon icon="undo"></font-awesome-icon>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Hero selection contextual controls -->
     <div class="control hero-action">
-      <label>Add hero to selected tile</label>
+      <label>Add hero to selected tile (move this later!)</label>
       <button class="place-hero" @click="onPlaceHero">Place Hero</button>
       <div class="d-pad">
         <button class="rotate-hero-left" @click="rotateModelLeft">&larr;</button>
@@ -80,22 +56,14 @@
         </label>
       </div>
     </div>
-    <div class="control">
-      <button class="go-fullscreen" @click="fullscreenMap">Go Fullscreen</button>
-    </div>
-    <div class="control">
-      <button class="save" @click="saveMap">Save!</button>
-    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 
-import { generateTilesJson } from '@/components/threejs/MapRenderer/mapHelpers'
-import { deconstructTileStringId, openElementFullscreen } from '@/components/threejs/MapRenderer/helpers'
+import { deconstructTileStringId } from '@/components/threejs/MapRenderer/helpers'
 import { rotateModel, moveForward, moveBackward } from '@/components/threejs/MapRenderer/heroActions'
-import { tweenActiveTileToggle } from '@/components/threejs/MapRenderer/tweens'
 import { getSelectedTilePosition } from '@/components/threejs/MapRenderer/tileActions'
 
 export default {
@@ -111,24 +79,9 @@ export default {
       instancedMeshesVuex: 'instancedMeshes',
       selectedTile: 'selectedTile',
       selectionHighlighter: 'selectionHighlighter',
-      characterGroup: 'characterGroup'
+      characterGroup: 'characterGroup',
+      editTool: 'editTool'
     }),
-    editMode: {
-      get () {
-        return this.$store.state.threeMap.editMode
-      },
-      set (editMode) {
-        this.$store.dispatch('threeMap/setEditMode', editMode)
-      }
-    },
-    editTool: {
-      get () {
-        return this.$store.state.threeMap.editTool
-      },
-      set (editTool) {
-        this.$store.dispatch('threeMap/setEditTool', editTool)
-      }
-    },
     creationTileType: {
       get () {
         return this.$store.state.threeMap.creationTileType
@@ -139,29 +92,14 @@ export default {
     }
   },
   methods: {
-    saveMap () {
-      // Get all of the instanced mesh keys
-      let tilesJson = generateTilesJson(this.instancedMeshesVuex)
-
-      this.$emit('saveMap', { tilesJson })
-    },
-    toggleEditorPanel () {
-      this.showEditorPanel = !this.showEditorPanel
-    },
-
     // edit related methods
     addModelToSelectedTile () {
       if (this.selectedTile) {
         let v = getSelectedTilePosition(this.selectedTile, this.instancedMeshesVuex)
         v.y = 0.25
-        this.$store.dispatch('threeMap/setCharacterPosition', { x: v.x, y: v.y, z: v.z })
+        this.$store.dispatch('threeMap/setDadPosition', { x: v.x, y: v.y, z: v.z })
       } else {
         alert('You must select a tile!')
-      }
-    },
-    onEditToolChange (event) {
-      if (this.editTool !== 'select') {
-        this.$store.dispatch('threeMap/clearTileSelection')
       }
     },
     onRotateTile () {
@@ -182,23 +120,6 @@ export default {
     },
     moveModelBackward () {
       moveBackward(this.characterGroup)
-    },
-    fullscreenMap () {
-      openElementFullscreen(document.body)
-    },
-    /**
-     * Reset all tiles
-     */
-    resetAllTiles () {
-      let instancedMeshNames = Object.keys(this.instancedMeshesVuex)
-      instancedMeshNames.forEach(name => {
-        let instanceKeys = Object.keys(this.instancedMeshesVuex[name].mesh.userData)
-        instanceKeys.forEach(instanceId => {
-          if (this.instancedMeshesVuex[name].mesh.userData[instanceId].isActive) {
-            tweenActiveTileToggle(this.instancedMeshesVuex[name].mesh, instanceId, false)
-          }
-        })
-      })
     }
   }
 }
