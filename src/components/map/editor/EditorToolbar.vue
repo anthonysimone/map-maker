@@ -106,8 +106,7 @@ export default {
   computed: {
     ...mapGetters('threeMap', [
       'editMode',
-      'editTool',
-      'instancedMeshes'
+      'editTool'
     ])
   },
   methods: {
@@ -139,7 +138,7 @@ export default {
       let tilesJson = generateTilesJson(this.instancedMeshes)
 
       this.$emit('saveMap', { tilesJson })
-    },
+    }
   }
 }
 </script>

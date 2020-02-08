@@ -9,19 +9,19 @@
 import { mapGetters } from 'vuex'
 import * as THREE from 'three'
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import Stats from 'stats.js'
 import * as TWEEN from 'es6-tween'
 import * as Hammer from 'hammerjs'
 
-import { setMouse, degToRad } from './helpers'
+import { setMouse } from './helpers'
 import { loadTileTextures } from './loadTextures'
-import { onModelLoad, onModelProgress, onModelError } from './modelHelpers'
 import {
   toggleTileActiveState,
   getTilePosition,
   hideRollOver
 } from './tileActions'
+
+import { threeMap } from '@/helpers/services/threeMapService'
 
 export default {
   name: 'threejs-map-renderer',
@@ -72,15 +72,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('threeMap', {
-      scene: 'scene',
-      instancedMeshesVuex: 'instancedMeshes',
-      selectedTile: 'selectedTile',
-      controls: 'controls',
-      selectionHighlighter: 'selectionHighlighter',
-      dadGroup: 'dadGroup',
-      modelGroups: 'modelGroups'
-    }),
+    ...mapGetters('threeMap', ['selectedTile']),
     editMode: {
       get () {
         return this.$store.state.threeMap.editMode
@@ -127,12 +119,12 @@ export default {
 
       const scene = new THREE.Scene()
       scene.background = this.backgroundColor
-      this.$store.dispatch('threeMap/setScene', scene)
+      threeMap.setScene(scene)
 
       this.clock = new THREE.Clock()
 
       // add fog
-      // this.scene.fog = new THREE.Fog(this.backgroundColor, 20, 22)
+      // threeMap.scene.fog = new THREE.Fog(this.backgroundColor, 20, 22)
 
       this.createCamera()
       this.createControls()
@@ -167,7 +159,7 @@ export default {
       const fov = 60 // Field of view
       const aspect = this.container.clientWidth / this.container.clientHeight
       const near = 0.1 // the near clipping plane
-      const far = 60 // the far clipping plane
+      const far = 30 // the far clipping plane
 
       this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
 
@@ -182,9 +174,9 @@ export default {
       controls.dampingFactor = 0.15
       controls.screenSpacePanning = false
       controls.minDistance = 4
-      controls.maxDistance = 50
+      controls.maxDistance = 20
       controls.maxPolarAngle = Math.PI / 2.2
-      this.$store.dispatch('threeMap/setControls', controls)
+      threeMap.setControls(controls)
     },
     /**
      * Create lights
@@ -201,30 +193,97 @@ export default {
       const mainLight = new THREE.DirectionalLight(0xffffff, 4.0)
       mainLight.position.set(10, 10, 10)
 
-      this.scene.add(ambientLight, mainLight)
+      threeMap.scene.add(ambientLight, mainLight)
     },
     /**
      * Generic load model method using the service setup via veux
      * TODO: does this still need to be / should this still be async?
      */
     async loadModelAsync (modelKey, position) {
-      await this.$store.dispatch('threeMap/loadModelObject', {
-        modelKey: modelKey,
-        position
-      })
+      await threeMap.loadModelObject({ modelKey, position })
     },
     /**
      * Load Robot Model
      */
     loadRobotModel () {
-      this.loadModelAsync('robot', { x: 0.5, y: 0.25, z: 0.5 })
+      // this.loadModelAsync('robot', { x: 0.5, y: 0.25, z: 0.5 })
+
+      // this.loadModelAsync('tile', { x: 0.5, y: 0.25, z: 0.5 })
+      // this.loadModelAsync('wall', { x: 2.5, y: 0.25, z: 2.5 })
+      // this.loadModelAsync('stairs', { x: 0.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('tile', { x: 1.5, y: 2.25, z: 0.5 })
+      this.loadModelAsync('robot', { x: 2.5, y: 2.25, z: 0.5 })
+      this.loadModelAsync('robot', { x: 3.5, y: 2.25, z: 0.5 })
+      this.loadModelAsync('robot', { x: 4.5, y: 2.25, z: 0.5 })
+      this.loadModelAsync('robot', { x: 5.5, y: 2.25, z: 0.5 })
+      this.loadModelAsync('robot', { x: 1.5, y: 2.25, z: 1.5 })
+      this.loadModelAsync('robot', { x: 2.5, y: 2.25, z: 1.5 })
+      this.loadModelAsync('robot', { x: 3.5, y: 2.25, z: 1.5 })
+      this.loadModelAsync('robot', { x: 4.5, y: 2.25, z: 1.5 })
+      this.loadModelAsync('robot', { x: 5.5, y: 2.25, z: 1.5 })
+      this.loadModelAsync('robot', { x: 1.5, y: 2.25, z: 2.5 })
+      this.loadModelAsync('robot', { x: 2.5, y: 2.25, z: 2.5 })
+      this.loadModelAsync('robot', { x: 3.5, y: 2.25, z: 2.5 })
+      this.loadModelAsync('robot', { x: 4.5, y: 2.25, z: 2.5 })
+      this.loadModelAsync('robot', { x: 5.5, y: 2.25, z: 2.5 })
+      this.loadModelAsync('robot', { x: 1.5, y: 2.25, z: 3.5 })
+      this.loadModelAsync('robot', { x: 2.5, y: 2.25, z: 3.5 })
+      this.loadModelAsync('robot', { x: 3.5, y: 2.25, z: 3.5 })
+      this.loadModelAsync('robot', { x: 4.5, y: 2.25, z: 3.5 })
+      this.loadModelAsync('robot', { x: 5.5, y: 2.25, z: 3.5 })
+      this.loadModelAsync('robot', { x: 1.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('skeleton', { x: 2.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('skeleton', { x: 3.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('skeleton', { x: 4.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('skeleton', { x: 5.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('skeleton', { x: 1.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('skeleton', { x: 2.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('skeleton', { x: 3.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('skeleton', { x: 4.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('skeleton', { x: 5.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('skeleton', { x: 5.5, y: 2.25, z: 5.5 })
+
+      // this.loadModelAsync('dad', { x: 0.5, y: 0.25, z: 0.5 })
+      // this.loadModelAsync('dad', { x: 2.5, y: 0.25, z: 2.5 })
+      // this.loadModelAsync('dad', { x: 0.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 5.5 })
+      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 5.5 })
     },
     /**
      * Load Models
      * TODO: Refactor 90s dad to use loadModelAsync function
      */
     loadDadModel () {
-      this.loadModelAsync('dad', { x: 1.5, y: 0.25, z: 1.5 })
+      // this.loadModelAsync('dad', { x: 1.5, y: 0.25, z: 1.5 })
 
       // // Load 90s dad's sword, maybe update this later
       // const swordMatrix = new THREE.Matrix4()
@@ -272,7 +331,7 @@ export default {
       }))
       gridGroup.add(plane)
 
-      this.scene.add(gridGroup)
+      threeMap.scene.add(gridGroup)
       this.objects.push(plane)
     },
     /**
@@ -378,7 +437,7 @@ export default {
       // create the train group that will hold all train pieces
       this.boardGroup = new THREE.Group()
 
-      this.scene.add(this.boardGroup)
+      threeMap.scene.add(this.boardGroup)
 
       // Add checkerboard
       // TODO: determine what to do with checkerboard
@@ -393,7 +452,7 @@ export default {
       // fogofwar.position.y = 0.251
       // fogofwar.rotation.x = Math.PI * -0.5
 
-      // this.scene.add(fogofwar)
+      // threeMap.scene.add(fogofwar)
 
       /** Create Tiles Instanced - Start */
       let count = this.tilesNumber * this.tilesNumber
@@ -423,7 +482,7 @@ export default {
       }
 
       // Set vuex instancedMeshes
-      this.$store.dispatch('threeMap/setMeshes', buildingMeshes)
+      threeMap.setMeshes(buildingMeshes)
 
       // Add all instancedMeshes to the scene
       for (let i = 0; i < buildingKeys.length; i++) {
@@ -442,7 +501,7 @@ export default {
           // this.transform.rotation.set()
           this.transform.rotateY(tile.rotation * Math.PI / 2)
           this.transform.updateMatrix()
-          this.$store.dispatch('threeMap/addInstance', { matrix: this.instanceMatrix, name: tile.type, rotation: tile.rotation })
+          threeMap.addInstance({ matrix: this.instanceMatrix, name: tile.type, rotation: tile.rotation })
         })
       }
 
@@ -454,7 +513,7 @@ export default {
       selectionHighlighter.visible = false
 
       this.boardGroup.add(selectionHighlighter)
-      this.$store.dispatch('threeMap/setSelectionHighlighter', selectionHighlighter)
+      threeMap.setSelectionHighlighter(selectionHighlighter)
     },
     /**
      * Create renderer
@@ -482,7 +541,7 @@ export default {
      */
     update (time) {
       TWEEN.update()
-      this.controls.update()
+      threeMap.controls.update()
 
       // Handle updating objects with animation mixers
       let dt = this.clock.getDelta()
@@ -492,9 +551,9 @@ export default {
         })
       }
 
-      if (this.selectionHighlighter.visible) {
-        this.selectionHighlighter.rotateY(0.02)
-        this.selectionHighlighter.position.y = 0.85 + Math.sin(time / 200) * 0.1
+      if (threeMap.selectionHighlighter.visible) {
+        threeMap.selectionHighlighter.rotateY(0.02)
+        threeMap.selectionHighlighter.position.y = 0.85 + Math.sin(time / 200) * 0.1
       }
     },
     /**
@@ -502,7 +561,7 @@ export default {
      */
     render () { // TODO: change to 'renderScene'
       // Render the SCENE!!
-      this.renderer.render(this.scene, this.camera)
+      this.renderer.render(threeMap.scene, this.camera)
       this.stats.update()
     },
     /**
@@ -539,12 +598,12 @@ export default {
         const instanceId = intersects[0].instanceId
         if (event.shiftKey || this.editTool === 'delete') {
           // When shift key is pressed or in delete mode, "delete"
-          this.$store.dispatch('threeMap/deleteInstance', { name, instanceId })
+          threeMap.deleteInstance({ name, instanceId })
         } else if (this.editTool === 'select') {
           this.selectTile(name, instanceId)
         } else if (this.editTool === 'activate') {
           // no shift key, activate
-          toggleTileActiveState(name, instanceId, this.instancedMeshesVuex[name].mesh)
+          toggleTileActiveState(name, instanceId, threeMap.instancedMeshesVuex[name].mesh)
         }
       }
 
@@ -611,13 +670,13 @@ export default {
       this.$store.dispatch('threeMap/selectTile', { name, instanceId })
 
       // get position of selected tile and assign marker to that position
-      let positionVec = getTilePosition(name, instanceId, this.instancedMeshesVuex)
-      const currentY = this.selectionHighlighter.position.y
-      this.$store.dispatch('threeMap/highlighterTargetTile', { x: positionVec.x, y: currentY, z: positionVec.z })
+      let positionVec = getTilePosition(name, instanceId, threeMap.instancedMeshesVuex)
+      const currentY = threeMap.selectionHighlighter.position.y
+      threeMap.highlighterTargetTile({ x: positionVec.x, y: currentY, z: positionVec.z })
     },
     addTileByType (type, position) {
-      if (this.instancedMeshesVuex.hasOwnProperty(type)) {
-        this.$store.dispatch('threeMap/addInstance', { matrix: position.matrix, name: type })
+      if (threeMap.instancedMeshesVuex.hasOwnProperty(type)) {
+        threeMap.addInstance({ matrix: position.matrix, name: type })
       } else {
         console.error(`Invalid tile type: '${type}'`)
       }
@@ -626,36 +685,12 @@ export default {
       this.showControls = !this.showControls
     },
     getInstancedMeshKeyByIndex (index) {
-      return Object.keys(this.instancedMeshesVuex)[index]
+      return Object.keys(threeMap.instancedMeshesVuex)[index]
     },
     disposeScene () {
       this.stopScene = true
 
-      this.controls.dispose()
-      this.scene.traverse(object => {
-        if (!object.isMesh) return
-
-        object.geometry.dispose()
-
-        if (object.material.isMaterial) {
-          this.cleanMaterial(object.material)
-        } else {
-          // an array of materials
-          for (const material of object.material) this.cleanMaterial(material)
-        }
-      })
-      this.scene = null
-    },
-    cleanMaterial (material) {
-      material.dispose()
-
-      // dispose textures
-      for (const key of Object.keys(material)) {
-        const value = material[key]
-        if (value && typeof value === 'object' && 'minFilter' in value) {
-          value.dispose()
-        }
-      }
+      threeMap.disposeScene()
     }
   },
   destroyed () {
@@ -669,6 +704,7 @@ export default {
 
     // Clear vuex three relatetd map state
     this.$store.dispatch('threeMap/destroy')
+    threeMap.clearMap()
   },
   mounted () {
     // Set everything up

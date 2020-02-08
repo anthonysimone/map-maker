@@ -61,6 +61,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import { threeMap } from '@/helpers/services/threeMapService'
 
 import { deconstructTileStringId } from '@/components/threejs/MapRenderer/helpers'
 import { rotateModel, moveForward, moveBackward } from '@/components/threejs/MapRenderer/heroActions'
@@ -75,13 +76,10 @@ export default {
   },
   computed: {
     // Edit related computed props
-    ...mapGetters('threeMap', {
-      instancedMeshesVuex: 'instancedMeshes',
-      selectedTile: 'selectedTile',
-      selectionHighlighter: 'selectionHighlighter',
-      characterGroup: 'characterGroup',
-      editTool: 'editTool'
-    }),
+    ...mapGetters('threeMap', [
+      'selectedTile',
+      'editTool'
+    ]),
     creationTileType: {
       get () {
         return this.$store.state.threeMap.creationTileType
@@ -94,17 +92,18 @@ export default {
   methods: {
     // edit related methods
     addModelToSelectedTile () {
-      if (this.selectedTile) {
-        let v = getSelectedTilePosition(this.selectedTile, this.instancedMeshesVuex)
-        v.y = 0.25
-        this.$store.dispatch('threeMap/setDadPosition', { x: v.x, y: v.y, z: v.z })
-      } else {
-        alert('You must select a tile!')
-      }
+      // TODO: implement this generically
+      // if (this.selectedTile) {
+      //   let v = getSelectedTilePosition(this.selectedTile, this.instancedMeshesVuex)
+      //   v.y = 0.25
+      //   this.$store.dispatch('threeMap/setDadPosition', { x: v.x, y: v.y, z: v.z })
+      // } else {
+      //   alert('You must select a tile!')
+      // }
     },
     onRotateTile () {
       let { name, instanceId } = deconstructTileStringId(this.selectedTile)
-      this.$store.dispatch('threeMap/rotateInstance', { name, instanceId })
+      threeMap.rotateInstance({ name, instanceId })
     },
     onPlaceHero () {
       this.addModelToSelectedTile()

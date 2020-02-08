@@ -81,10 +81,6 @@ export const onModelError = errorMessage => {
 }
 
 const models = {
-  tile: {
-    url: '/threejs/models/Tile/Floor_Modular.glb',
-    normalizationScale: { x: 1, y: 1, z: 1 }
-  },
   dad: {
     url: '/threejs/models/90s_dad/scene.gltf',
     normalizationScale: { x: 0.125, y: 0.125, z: 0.125 }
@@ -116,6 +112,19 @@ const models = {
   skeleton: {
     url: '/threejs/models/Monsters/Skeleton.glb',
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 }
+  },
+  // Dungeon pieces
+  tile: {
+    url: '/threejs/models/Dungeon_Modules/glb/Floor_Modular.glb',
+    normalizationScale: { x: 1, y: 1, z: 1 }
+  },
+  stairs: {
+    url: '/threejs/models/Dungeon_Modules/glb/Stairs_Modular.glb',
+    normalizationScale: { x: 1, y: 1, z: 1 }
+  },
+  wall: {
+    url: '/threejs/models/Dungeon_Modules/glb/Wall_Modular.glb',
+    normalizationScale: { x: 1, y: 1, z: 1 }
   }
 }
 
