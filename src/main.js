@@ -23,7 +23,6 @@ import VueTippy, { TippyComponent } from 'vue-tippy'
 
 import SiteDefaultLayout from '@/components/layouts/SiteDefaultLayout.vue'
 import MapLayout from '@/components/layouts/MapLayout.vue'
-import WebglmapLayout from '@/components/layouts/WebglmapLayout.vue'
 
 Vue.config.productionTip = false
 Vue.use(VModal, { dialog: true, dynamic: true })
@@ -51,7 +50,6 @@ Vue.component('tippy', TippyComponent)
 // Add layouts globally
 Vue.component('site-default-layout', SiteDefaultLayout)
 Vue.component('map-layout', MapLayout)
-Vue.component('webglmap-layout', WebglmapLayout)
 
 let app
 

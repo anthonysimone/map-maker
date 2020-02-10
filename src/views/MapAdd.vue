@@ -67,7 +67,7 @@ export default {
       // this.waitingForResponse = true
       this.$store.dispatch('map/addMap', newMap)
         .then(response => {
-          this.$router.push({ name: 'webglmap-editor', params: { id: response } })
+          this.$router.push({ name: 'map-editor', params: { id: response } })
         }).catch(error => {
           console.log(error)
         }).finally(() => {

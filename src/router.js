@@ -34,27 +34,27 @@ export const router = new Router({
     {
       path: '/map/add',
       name: 'map-add',
-      component: () => import('./views/webglmap/WebglmapAdd.vue'),
+      component: () => import('./views/MapAdd.vue'),
       meta: {
         requireAuth: true
       }
     },
     {
       path: '/map/webgl/:id',
-      name: 'webglmap-detail',
-      component: () => import('./views/webglmap/WebglmapDetail.vue'),
+      name: 'map-detail',
+      component: () => import('./views/MapDetail.vue'),
       meta: {
         requireAuth: true,
-        layout: 'webglmap-layout'
+        layout: 'map-layout'
       }
     },
     {
       path: '/map/webgl/:id/edit',
-      name: 'webglmap-editor',
-      component: () => import('./views/webglmap/WebglmapEditor.vue'),
+      name: 'map-editor',
+      component: () => import('./views/MapEditor.vue'),
       meta: {
         requireAuth: true,
-        layout: 'webglmap-layout'
+        layout: 'map-layout'
       }
     },
     {

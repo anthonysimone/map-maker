@@ -4,8 +4,8 @@
       <h3>{{ map.name }}</h3>
       <p>{{ map.id }}</p>
       <div class="action-buttons">
-        <router-link class="button is-primary is-small to-edit-map" :to="{name: 'webglmap-editor', params: {id: map.id}}">Edit</router-link>
-        <router-link class="button is-primary is-small" :to="{name: 'webglmap-detail', params: {id: map.id}}">View Webgl</router-link>
+        <router-link class="button is-primary is-small to-edit-map" :to="{name: 'map-editor', params: {id: map.id}}">Edit</router-link>
+        <router-link class="button is-primary is-small" :to="{name: 'map-detail', params: {id: map.id}}">View Webgl</router-link>
         <confirmation-modal classes="delete"
           @confirmationSuccess="deleteMap(map.id)"
           dialog-title="Warning!"

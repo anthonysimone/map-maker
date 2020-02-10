@@ -1,10 +1,10 @@
 <template>
-  <div class="webglmap-detail">
+  <div class="map-detail">
     <div class="map-details" :class="{'is-active': detailsOpen}">
       <h1 class="map-name">{{ map.name }}</h1>
       <span class="details">({{ map.tilesWidth }}x{{ map.tilesLength }})</span>
       <div class="nav-links">
-        <router-link class="button is-primary is-small to-edit-map" :to="{name: 'webglmap-editor', params: {id: map.id}}">Edit</router-link>
+        <router-link class="button is-primary is-small to-edit-map" :to="{name: 'map-editor', params: {id: map.id}}">Edit</router-link>
         <router-link class="button is-primary is-small to-dashboard" :to="{name: 'dashboard'}">Dashboard</router-link>
       </div>
       <button class="details-toggle" @click="toggleMapDetails">Toggle</button>
