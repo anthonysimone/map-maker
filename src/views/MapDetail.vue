@@ -32,13 +32,11 @@ export default {
   computed: {
     ...mapGetters('map', ['mapById']),
     map () {
-      console.log('the map', this.mapById(this.id))
       return this.mapById(this.id)
     }
   },
   methods: {
     toggleMapDetails () {
-      console.log('toggling')
       this.detailsOpen = !this.detailsOpen
     }
   }

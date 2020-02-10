@@ -3,7 +3,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 // Reusable onLoad function
 export const onModelLoad = (gltf, modelGroup, modelMatrix, mixers) => {
-  // console.log('model load', gltf, modelGroup, modelMatrix)
   const model = gltf.scene.children[0]
   model.applyMatrix(modelMatrix)
 
