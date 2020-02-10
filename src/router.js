@@ -40,24 +40,6 @@ export const router = new Router({
       }
     },
     {
-      path: '/map/:id',
-      name: 'map-detail',
-      component: () => import('./views/MapDetail.vue'),
-      meta: {
-        requireAuth: true,
-        layout: 'map-layout'
-      }
-    },
-    {
-      path: '/map/:id/edit',
-      name: 'map-editor',
-      component: () => import('./views/MapEditor.vue'),
-      meta: {
-        requireAuth: true,
-        layout: 'map-layout'
-      }
-    },
-    {
       path: '/map/webgl/:id',
       name: 'webglmap-detail',
       component: () => import('./views/webglmap/WebglmapDetail.vue'),
