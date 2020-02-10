@@ -2,7 +2,7 @@
   <div class="editor-panel">
 
     <!-- Create tool contextual controls -->
-    <div class="control creation-tile-type" :class="{ enabled: editTool === 'create' }">
+    <div class="control creation-tile-type" v-if="editTool === 'create'">
       <label>Creation Tile Type</label>
       <div class="list-radios">
         <label class="radio-label">
@@ -28,8 +28,35 @@
       </div>
     </div>
 
-    <!-- Select tool contextual controls -->
-    <section class="contextual-controls selected-tile-actions" :class="{ 'has-selection': selectedTile }">
+    <!-- Add model contextual controls -->
+    <div class="control add-model-type" v-if="editTool === 'addModel'">
+      <label>Add Model Type</label>
+      <div class="list-radios">
+        <label class="radio-label">
+          <input type="radio" value="robot" checked name="addModelType" v-model="addModelType">
+          <span>Robot</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="slime" name="addModelType" v-model="addModelType">
+          <span>Slime</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="skeleton" name="addModelType" v-model="addModelType">
+          <span>Skeleton</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="goblin" name="addModelType" v-model="addModelType">
+          <span>Goblin</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="bat" name="addModelType" v-model="addModelType">
+          <span>Bat</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Select tool contextual controls: editing selected tile -->
+    <section class="contextual-controls selected-tile-actions" v-if="selectedTile">
       <h3>Selected Tile: {{ selectedTile }}</h3>
       <div class="control">
         <span class="selected-tile-label button-group-label">Rotate</span>
@@ -41,10 +68,21 @@
       </div>
     </section>
 
+    <!-- Select tool contextual controls: editing selected model -->
+    <section class="contextual-controls selected-model-actions" v-if="selectedModel">
+      <h3>Selected Model: {{ selectedModel }}</h3>
+      <div class="control">
+        <span class="selected-model-label button-group-label">Rotate</span>
+        <button @click="onRotateModel" class="button is-small" content="Rotate counter clockwise" v-tippy="{ placement : 'bottom',  arrow: true }">
+          <span class="icon is-small">
+            <font-awesome-icon icon="undo"></font-awesome-icon>
+          </span>
+        </button>
+      </div>
+    </section>
+
     <!-- Hero selection contextual controls -->
     <div class="control hero-action">
-      <label>Add hero to selected tile (move this later!)</label>
-      <button class="place-hero" @click="onPlaceHero">Place Hero</button>
       <div class="d-pad">
         <button class="rotate-hero-left" @click="rotateModelLeft">&larr;</button>
         <button class="rotate-hero-right" @click="rotateModelRight">&rarr;</button>
@@ -63,9 +101,8 @@
 import { mapGetters } from 'vuex'
 import { threeMap } from '@/helpers/services/threeMapService'
 
-import { deconstructTileStringId } from '@/components/threejs/MapRenderer/helpers'
+import { deconstructTileStringId, deconstructModelStringId } from '@/components/threejs/MapRenderer/helpers'
 import { rotateModel, moveForward, moveBackward } from '@/components/threejs/MapRenderer/heroActions'
-import { getSelectedTilePosition } from '@/components/threejs/MapRenderer/tileActions'
 
 export default {
   name: 'editor-side-panel',
@@ -78,6 +115,7 @@ export default {
     // Edit related computed props
     ...mapGetters('threeMap', [
       'selectedTile',
+      'selectedModel',
       'editTool'
     ]),
     creationTileType: {
@@ -87,26 +125,25 @@ export default {
       set (tileType) {
         this.$store.dispatch('threeMap/setCreationTileType', tileType)
       }
+    },
+    addModelType: {
+      get () {
+        return this.$store.state.threeMap.addModelType
+      },
+      set (modelType) {
+        this.$store.dispatch('threeMap/setAddModelType', modelType)
+      }
     }
   },
   methods: {
     // edit related methods
-    addModelToSelectedTile () {
-      // TODO: implement this generically
-      // if (this.selectedTile) {
-      //   let v = getSelectedTilePosition(this.selectedTile, this.instancedMeshesVuex)
-      //   v.y = 0.25
-      //   this.$store.dispatch('threeMap/setDadPosition', { x: v.x, y: v.y, z: v.z })
-      // } else {
-      //   alert('You must select a tile!')
-      // }
-    },
     onRotateTile () {
       let { name, instanceId } = deconstructTileStringId(this.selectedTile)
       threeMap.rotateInstance({ name, instanceId })
     },
-    onPlaceHero () {
-      this.addModelToSelectedTile()
+    onRotateModel () {
+      let { modelType, instanceNumber } = deconstructModelStringId(this.selectedModel)
+      threeMap.rotateModel({ modelType, instanceNumber })
     },
     rotateModelLeft () {
       rotateModel(this.characterGroup, false)
@@ -203,22 +240,6 @@ export default {
   font-size: 12px;
 
   label {
-    display: block;
-  }
-}
-
-.selected-tile-actions {
-  display: none;
-
-  &.has-selection {
-    display: block;
-  }
-}
-
-.creation-tile-type {
-  display: none;
-
-  &.enabled {
     display: block;
   }
 }

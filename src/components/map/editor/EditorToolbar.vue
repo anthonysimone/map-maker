@@ -43,6 +43,24 @@
         </p>
       </div>
 
+      <!-- Model actions -->
+      <div class="field has-addons">
+        <p class="control">
+          <button @click="changeEditTool('addModel')" class="button is-small" :class="{'is-active': editTool === 'addModel'}" content="Add Model" v-tippy="{ placement : 'bottom',  arrow: true }">
+            <span class="icon is-small">
+              <font-awesome-icon icon="plus-circle"></font-awesome-icon>
+            </span>
+          </button>
+        </p>
+        <p class="control">
+          <button @click="changeEditTool('deleteModel')" class="button is-small" :class="{'is-active': editTool === 'deleteModel'}" content="Delete Model" v-tippy="{ placement : 'bottom',  arrow: true }">
+            <span class="icon is-small">
+              <font-awesome-icon icon="minus-circle"></font-awesome-icon>
+            </span>
+          </button>
+        </p>
+      </div>
+
       <div class="divider"></div>
 
       <!-- Edit Mode -->
@@ -89,8 +107,9 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import { threeMap } from '@/helpers/services/threeMapService'
 
-import { generateTilesJson } from '@/components/threejs/MapRenderer/mapHelpers'
+import { generateTilesJson, generateCharactersJson } from '@/components/threejs/MapRenderer/mapHelpers'
 import { openElementFullscreen } from '@/components/threejs/MapRenderer/helpers'
 import { tweenActiveTileToggle } from '@/components/threejs/MapRenderer/tweens'
 
@@ -115,17 +134,17 @@ export default {
     },
     changeEditTool (editTool) {
       if (editTool !== 'select') {
-        this.$store.dispatch('threeMap/clearTileSelection')
+        this.$store.dispatch('threeMap/clearSelection')
       }
       this.$store.dispatch('threeMap/setEditTool', editTool)
     },
     resetAllTiles () {
-      let instancedMeshNames = Object.keys(this.instancedMeshes)
+      let instancedMeshNames = Object.keys(threeMap.instancedMeshes)
       instancedMeshNames.forEach(name => {
-        let instanceKeys = Object.keys(this.instancedMeshes[name].mesh.userData)
+        let instanceKeys = Object.keys(threeMap.instancedMeshes[name].mesh.userData)
         instanceKeys.forEach(instanceId => {
-          if (this.instancedMeshes[name].mesh.userData[instanceId].isActive) {
-            tweenActiveTileToggle(this.instancedMeshes[name].mesh, instanceId, false)
+          if (threeMap.instancedMeshes[name].mesh.userData[instanceId].isActive) {
+            tweenActiveTileToggle(threeMap.instancedMeshes[name].mesh, instanceId, false)
           }
         })
       })
@@ -135,9 +154,10 @@ export default {
     },
     saveMap () {
       // Get all of the instanced mesh keys
-      let tilesJson = generateTilesJson(this.instancedMeshes)
+      let tilesJson = generateTilesJson(threeMap.instancedMeshes)
+      let charactersJson = generateCharactersJson(threeMap.characterInstances)
 
-      this.$emit('saveMap', { tilesJson })
+      this.$emit('saveMap', { tilesJson, charactersJson })
     }
   }
 }

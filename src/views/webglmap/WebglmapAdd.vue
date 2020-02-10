@@ -15,18 +15,9 @@
 
           <div class="field">
             <label class="label is-small">
-              Initial Map Width (x-axis)
+              Initial Map Size (as a square)
               <div class="contro">
                 <input type="number" v-model.number="newWebglmap.tilesWidth" required class="input is-small">
-              </div>
-            </label>
-          </div>
-
-          <div class="field">
-            <label class="label is-small">
-              Initial Map Length (y-axis)
-              <div class="control">
-                <input type="number" v-model.number="newMap.tilesLength" required class="input is-small">
               </div>
             </label>
           </div>
@@ -48,57 +39,35 @@ export default {
   },
   data () {
     return {
-      newMap: {
+      newWebglmap: {
         name: '',
-        tilesLength: null,
         tilesWidth: null,
         createdBy: ''
       }
     }
   },
   computed: {
-    ...mapState('user', ['userProfile']),
-    newTiles () {
-      if (this.newMap.tilesLength > 0 && this.newMap.tilesWidth > 0) {
-        let tiles = {}
-        for (let l = 0; l < this.newMap.tilesLength; l++) {
-          let row = {}
-          for (let w = 0; w < this.newMap.tilesWidth; w++) {
-            // initialize a new tile
-            row[w] = {
-              walkability: true,
-              position: {
-                x: w,
-                y: l
-              }
-            }
-          }
-          tiles[l] = row
-        }
-        return tiles
-      } else {
-        return null
-      }
-    }
+    ...mapState('user', ['userProfile'])
   },
   methods: {
-    addNewMap () {
-      console.log('Trying to add new map!', this.newMap)
-      console.log('new tiles', this.newTiles)
-      if (!this.newTiles) {
+    addNewWebglmap () {
+      if (!this.newWebglmap.tilesWidth) {
         alert('You must add positive numbers for width and length.')
         return
       }
 
-      let newMap = Object.assign({}, this.newMap)
+      if (this.newWebglmap.tilesWidth % 2) {
+        alert('You can only use even numbers.')
+        return
+      }
+
+      let newMap = Object.assign({}, this.newWebglmap)
       // Add tiles
-      newMap.tiles = this.newTiles
-      // Add default contants, TODO: refactor to a map service
-      newMap.startCoords = { x: 0, y: 0 }
+      // newMap.tiles = this.newTiles
       // this.waitingForResponse = true
       this.$store.dispatch('map/addMap', newMap)
         .then(response => {
-          this.$router.push({ name: 'map-detail', params: { id: response } })
+          this.$router.push({ name: 'webglmap-editor', params: { id: response } })
         }).catch(error => {
           console.log(error)
         }).finally(() => {
@@ -108,7 +77,7 @@ export default {
   },
   mounted () {
     // On mount, add the created by key for current user
-    this.newMap.createdBy = this.userProfile.id
+    this.newWebglmap.createdBy = this.userProfile.id
   }
 }
 </script>

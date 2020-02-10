@@ -26,6 +26,14 @@ export function deconstructTileStringId (tileStringId) {
 }
 
 /**
+ * Deconstruct model string identifier
+ */
+export function deconstructModelStringId (modelStringId) {
+  let [modelType, instanceNumber] = modelStringId.split('-')
+  return { modelType, instanceNumber }
+}
+
+/**
  * Disable PAN
  */
 export function setPan (controls, enable) {

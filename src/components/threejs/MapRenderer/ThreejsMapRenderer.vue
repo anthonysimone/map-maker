@@ -47,14 +47,9 @@ export default {
 
       // three map objects
       container: null,
-      camera: null,
-      renderer: null,
-      geometries: null,
-      materials: null,
-      boardGroup: null,
 
       // animation helpers
-      mixers: [],
+      mixers: [], // probably move this over to threeMap once I'm actually using it
 
       // three helper ojects
       backgroundColor: new THREE.Color(0x8fbcd4),
@@ -65,6 +60,7 @@ export default {
       raycaster: new THREE.Raycaster(),
       mouse: new THREE.Vector2(),
       transform: new THREE.Object3D(),
+      vector3: new THREE.Vector3(),
       rolloverOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       initialTileOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       matrix: new THREE.Matrix4(),
@@ -72,33 +68,15 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('threeMap', ['selectedTile']),
-    editMode: {
-      get () {
-        return this.$store.state.threeMap.editMode
-      },
-      set (editMode) {
-        this.$store.dispatch('threeMap/setEditMode', editMode)
-      }
-    },
-    editTool: {
-      get () {
-        return this.$store.state.threeMap.editTool
-      },
-      set (editTool) {
-        this.$store.dispatch('threeMap/setEditTool', editTool)
-      }
-    },
-    creationTileType: {
-      get () {
-        return this.$store.state.threeMap.creationTileType
-      },
-      set (tileType) {
-        this.$store.dispatch('threeMap/setCreationTileType', tileType)
-      }
-    },
-    checkerboardSize () {
-      return this.tilesNumber % 4 === 0 ? this.tilesNumber : this.tilesNumber + 4 - (this.tilesNumber % 4)
+    ...mapGetters('threeMap', [
+      'editTool',
+      'editMode',
+      'selectedTile',
+      'creationTileType',
+      'addModelType'
+    ]),
+    boardSize () {
+      return this.tilesNumber % 2 === 0 ? this.tilesNumber : this.tilesNumber + 2 - (this.tilesNumber % 2)
     },
     // TODO: at some point this needs to be dynamic based on tiles used, for now it's just a static definition
     numberOfInstancedMeshes () {
@@ -126,24 +104,22 @@ export default {
       // add fog
       // threeMap.scene.fog = new THREE.Fog(this.backgroundColor, 20, 22)
 
-      this.createCamera()
-      this.createControls()
+      threeMap.setCamera(this.createCamera())
+      threeMap.setControls(this.createControls())
       this.createLights()
 
       this.createGrid()
 
       // Create board
-
-      this.materials = this.createMaterials()
-      this.geometries = this.createGeometries()
+      threeMap.setMaterials(this.createMaterials())
+      threeMap.setGeometries(this.createGeometries())
 
       this.createMeshes()
 
-      this.loadDadModel()
       this.loadRobotModel()
       this.createRenderer()
 
-      this.renderer.setAnimationLoop((time) => {
+      threeMap.renderer.setAnimationLoop((time) => {
         if (this.stopScene) {
           return null
         }
@@ -161,22 +137,25 @@ export default {
       const near = 0.1 // the near clipping plane
       const far = 30 // the far clipping plane
 
-      this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
 
-      this.camera.position.set(0, 10, 0)
+      camera.position.set(0, 10, -10)
+
+      return camera
     },
     /**
      * Create the camera map controls
      */
     createControls () {
-      let controls = new MapControls(this.camera, this.container)
+      let controls = new MapControls(threeMap.camera, this.container)
       controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
       controls.dampingFactor = 0.15
       controls.screenSpacePanning = false
       controls.minDistance = 4
       controls.maxDistance = 20
       controls.maxPolarAngle = Math.PI / 2.2
-      threeMap.setControls(controls)
+
+      return controls
     },
     /**
      * Create lights
@@ -199,8 +178,8 @@ export default {
      * Generic load model method using the service setup via veux
      * TODO: does this still need to be / should this still be async?
      */
-    async loadModelAsync (modelKey, position) {
-      await threeMap.loadModelObject({ modelKey, position })
+    async loadModelAsync (modelKey, position, rotation) {
+      await threeMap.loadModelObject({ modelKey, position, rotation })
     },
     /**
      * Load Robot Model
@@ -212,26 +191,26 @@ export default {
       // this.loadModelAsync('wall', { x: 2.5, y: 0.25, z: 2.5 })
       // this.loadModelAsync('stairs', { x: 0.5, y: 2.25, z: 0.5 })
       // this.loadModelAsync('tile', { x: 1.5, y: 2.25, z: 0.5 })
-      this.loadModelAsync('robot', { x: 2.5, y: 2.25, z: 0.5 })
-      this.loadModelAsync('robot', { x: 3.5, y: 2.25, z: 0.5 })
-      this.loadModelAsync('robot', { x: 4.5, y: 2.25, z: 0.5 })
-      this.loadModelAsync('robot', { x: 5.5, y: 2.25, z: 0.5 })
-      this.loadModelAsync('robot', { x: 1.5, y: 2.25, z: 1.5 })
-      this.loadModelAsync('robot', { x: 2.5, y: 2.25, z: 1.5 })
-      this.loadModelAsync('robot', { x: 3.5, y: 2.25, z: 1.5 })
-      this.loadModelAsync('robot', { x: 4.5, y: 2.25, z: 1.5 })
-      this.loadModelAsync('robot', { x: 5.5, y: 2.25, z: 1.5 })
-      this.loadModelAsync('robot', { x: 1.5, y: 2.25, z: 2.5 })
-      this.loadModelAsync('robot', { x: 2.5, y: 2.25, z: 2.5 })
-      this.loadModelAsync('robot', { x: 3.5, y: 2.25, z: 2.5 })
-      this.loadModelAsync('robot', { x: 4.5, y: 2.25, z: 2.5 })
-      this.loadModelAsync('robot', { x: 5.5, y: 2.25, z: 2.5 })
-      this.loadModelAsync('robot', { x: 1.5, y: 2.25, z: 3.5 })
-      this.loadModelAsync('robot', { x: 2.5, y: 2.25, z: 3.5 })
-      this.loadModelAsync('robot', { x: 3.5, y: 2.25, z: 3.5 })
-      this.loadModelAsync('robot', { x: 4.5, y: 2.25, z: 3.5 })
-      this.loadModelAsync('robot', { x: 5.5, y: 2.25, z: 3.5 })
-      this.loadModelAsync('robot', { x: 1.5, y: 2.25, z: 4.5 })
+      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('slime', { x: 3.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('slime', { x: 4.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('slime', { x: 5.5, y: 2.25, z: 0.5 })
+      // this.loadModelAsync('slime', { x: 1.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('slime', { x: 2.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('slime', { x: 3.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('slime', { x: 4.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('slime', { x: 5.5, y: 2.25, z: 1.5 })
+      // this.loadModelAsync('slime', { x: 1.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('slime', { x: 2.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('slime', { x: 3.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('slime', { x: 4.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('slime', { x: 5.5, y: 2.25, z: 2.5 })
+      // this.loadModelAsync('slime', { x: 1.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('slime', { x: 2.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('slime', { x: 3.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('slime', { x: 4.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('slime', { x: 5.5, y: 2.25, z: 3.5 })
+      // this.loadModelAsync('slime', { x: 1.5, y: 2.25, z: 4.5 })
       // this.loadModelAsync('skeleton', { x: 2.5, y: 2.25, z: 4.5 })
       // this.loadModelAsync('skeleton', { x: 3.5, y: 2.25, z: 4.5 })
       // this.loadModelAsync('skeleton', { x: 4.5, y: 2.25, z: 4.5 })
@@ -282,21 +261,6 @@ export default {
      * Load Models
      * TODO: Refactor 90s dad to use loadModelAsync function
      */
-    loadDadModel () {
-      // this.loadModelAsync('dad', { x: 1.5, y: 0.25, z: 1.5 })
-
-      // // Load 90s dad's sword, maybe update this later
-      // const swordMatrix = new THREE.Matrix4()
-      // swordMatrix.makeRotationFromEuler(new THREE.Euler(degToRad(70), degToRad(15), degToRad(-80), 'XYZ'))
-      // swordMatrix.multiply(this.matrix.makeScale(0.4, 0.4, 0.4))
-      // swordMatrix.setPosition(0.17, 0.71, 0.175)
-      // loader.load(
-      //   '/threejs/models/medieval_sword/scene.gltf',
-      //   gltf => onModelLoad(gltf, this.dadGroup, swordMatrix),
-      //   onModelProgress,
-      //   onModelError
-      // )
-    },
     /**
      * Create grid
      */
@@ -321,10 +285,10 @@ export default {
       gridGroup.add(this.rollOverMesh)
 
       // add grid
-      let gridHelper = new THREE.GridHelper(this.checkerboardSize, this.checkerboardSize, 0x444444, 0x666666)
+      let gridHelper = new THREE.GridHelper(this.boardSize, this.boardSize, 0x444444, 0x666666)
       gridGroup.add(gridHelper)
 
-      let planeGeometry = new THREE.PlaneBufferGeometry(this.checkerboardSize, this.checkerboardSize)
+      let planeGeometry = new THREE.PlaneBufferGeometry(this.boardSize, this.boardSize)
       planeGeometry.rotateX(Math.PI * -0.5)
       let plane = new THREE.Mesh(planeGeometry, new THREE.MeshBasicMaterial({
         visible: false
@@ -385,25 +349,9 @@ export default {
       //   opacity: 1
       // })
 
-      // checker material
-      const textureLoader = new THREE.TextureLoader()
-      const texture = textureLoader.load('/threejs/textures/checkerboard.jpg')
-      texture.repeat.set(this.checkerboardSize / 4, this.checkerboardSize / 4)
-      texture.encoding = THREE.sRGBEncoding
-      texture.anisotropy = 16
-      texture.wrapS = THREE.RepeatWrapping
-      texture.wrapT = THREE.RepeatWrapping
-      texture.magFilter = THREE.NearestFilter
-
-      const board = new THREE.MeshStandardMaterial({
-        map: texture,
-        side: THREE.DoubleSide
-      })
-
       return {
         tile,
         tiles,
-        board,
         stage
         // fogofwar
       }
@@ -414,7 +362,7 @@ export default {
     createGeometries () {
       const tile = new THREE.BoxBufferGeometry(1, 0.25, 1)
       const flatTile = new THREE.PlaneBufferGeometry(1, 1)
-      const board = new THREE.PlaneBufferGeometry(this.checkerboardSize, this.checkerboardSize)
+      const board = new THREE.PlaneBufferGeometry(this.boardSize, this.boardSize)
       const cone = new THREE.ConeBufferGeometry(0.3, 1, 8)
 
       const tiles = []
@@ -435,20 +383,20 @@ export default {
      */
     createMeshes () {
       // create the train group that will hold all train pieces
-      this.boardGroup = new THREE.Group()
+      threeMap.setBoardGroup(new THREE.Group())
 
-      threeMap.scene.add(this.boardGroup)
+      threeMap.scene.add(threeMap.boardGroup)
 
       // Add checkerboard
       // TODO: determine what to do with checkerboard
-      const boardBase = new THREE.Mesh(this.geometries.board, this.materials.stage)
+      const boardBase = new THREE.Mesh(threeMap.geometries.board, threeMap.materials.stage)
       boardBase.position.y = -0.01
       boardBase.rotation.x = Math.PI * -0.5
-      this.boardGroup.add(boardBase)
+      threeMap.boardGroup.add(boardBase)
 
       // Add fog of war
       // TODO: probably remove this for an alternate fog of war mechanism
-      // const fogofwar = new THREE.Mesh(this.geometries.board, this.materials.fogofwar)
+      // const fogofwar = new THREE.Mesh(threeMap.geometries.board, threeMap.materials.fogofwar)
       // fogofwar.position.y = 0.251
       // fogofwar.rotation.x = Math.PI * -0.5
 
@@ -472,7 +420,7 @@ export default {
         // let key = this.getInstancedMeshKeyByIndex(i)
         let key = buildingKeys[i]
         buildingMeshes[key] = {
-          mesh: new THREE.InstancedMesh(this.geometries.tiles[i], this.materials.tiles[i], count),
+          mesh: new THREE.InstancedMesh(threeMap.geometries.tiles[i], threeMap.materials.tiles[i], count),
           count: 0
         }
         buildingMeshes[key].mesh.count = 0
@@ -488,9 +436,10 @@ export default {
       for (let i = 0; i < buildingKeys.length; i++) {
         // let key = this.getInstancedMeshKeyByIndex(i)
         let key = buildingKeys[i]
-        this.boardGroup.add(buildingMeshes[key].mesh)
+        threeMap.boardGroup.add(buildingMeshes[key].mesh)
       }
 
+      // Add saved tiles
       if (this.map.threejsTiles) {
         this.map.threejsTiles.forEach(tile => {
           this.instanceMatrix.makeTranslation(tile.position.x, tile.position.y, tile.position.z)
@@ -505,36 +454,48 @@ export default {
         })
       }
 
+      // Add saved characters
+      if (this.map.threejsCharacters) {
+        this.map.threejsCharacters.forEach(character => {
+          this.vector3.set(character.position.x, character.position.y, character.position.z)
+          this.addModelByType(character.type, this.vector3, character.rotation)
+        })
+      }
+
       // Create and add the selection mesh
-      const selectionHighlighter = new THREE.Mesh(this.geometries.cone, this.materials.tile)
+      const selectionHighlighter = new THREE.Group()
+      const highlighter = new THREE.Mesh(threeMap.geometries.cone, threeMap.materials.tile)
 
-      selectionHighlighter.position.set(0, 0.85, 0)
-      selectionHighlighter.rotation.set(Math.PI, 0, 0)
+      highlighter.position.set(0, 0.85, 0)
+      highlighter.rotation.set(Math.PI, 0, 0)
       selectionHighlighter.visible = false
+      selectionHighlighter.add(highlighter)
 
-      this.boardGroup.add(selectionHighlighter)
+      threeMap.boardGroup.add(selectionHighlighter)
       threeMap.setSelectionHighlighter(selectionHighlighter)
     },
     /**
      * Create renderer
      */
     createRenderer () {
-      this.renderer = new THREE.WebGLRenderer({
+      const renderer = new THREE.WebGLRenderer({
         antialias: true
       })
-      this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
+      renderer.setSize(this.container.clientWidth, this.container.clientHeight)
 
-      this.renderer.setPixelRatio(window.devicePixelRatio)
+      renderer.setPixelRatio(window.devicePixelRatio)
 
-      this.renderer.gammaFactor = 2.2
-      this.renderer.gammaOutput = true
+      renderer.gammaFactor = 2.2
+      renderer.gammaOutput = true
 
-      this.renderer.physicallyCorrectLights = true
+      renderer.physicallyCorrectLights = true
 
-      this.renderer.domElement.id = 'map-canvas'
+      renderer.domElement.id = 'map-canvas'
 
       // Add the canvas element
-      this.container.appendChild(this.renderer.domElement)
+      this.container.appendChild(renderer.domElement)
+
+      threeMap.setRenderer(renderer)
     },
     /**
      * Perform app updates, this will be called once per frame
@@ -552,8 +513,8 @@ export default {
       }
 
       if (threeMap.selectionHighlighter.visible) {
-        threeMap.selectionHighlighter.rotateY(0.02)
-        threeMap.selectionHighlighter.position.y = 0.85 + Math.sin(time / 200) * 0.1
+        threeMap.selectionHighlighter.children[0].rotateY(0.02)
+        threeMap.selectionHighlighter.children[0].position.y = 0.85 + Math.sin(time / 200) * 0.1
       }
     },
     /**
@@ -561,7 +522,7 @@ export default {
      */
     render () { // TODO: change to 'renderScene'
       // Render the SCENE!!
-      this.renderer.render(threeMap.scene, this.camera)
+      threeMap.renderer.render(threeMap.scene, threeMap.camera)
       this.stats.update()
     },
     /**
@@ -569,13 +530,13 @@ export default {
      */
     onWindowResize () {
       // set aspect ratio to match the new browser window aspect ratio
-      this.camera.aspect = this.container.clientWidth / this.container.clientHeight
+      threeMap.camera.aspect = this.container.clientWidth / this.container.clientHeight
 
       // update the camera's frustum
-      this.camera.updateProjectionMatrix()
+      threeMap.camera.updateProjectionMatrix()
 
       // update the size of the renderer AND canvas
-      this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
+      threeMap.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
     },
     /**
      * Click helper
@@ -586,13 +547,21 @@ export default {
       setMouse(this.mouse, event, this.container)
 
       // update the picking ray with the camera and mouse position
-      this.raycaster.setFromCamera(this.mouse, this.camera)
+      this.raycaster.setFromCamera(this.mouse, threeMap.camera)
 
       // calculate objects intersecting the picking ray
-      let intersects = this.raycaster.intersectObjects(this.boardGroup.children, true)
-      const hasHitTile = intersects.length && intersects[0].object.itemType === 'tile'
+      let intersects = this.raycaster.intersectObjects(threeMap.boardGroup.children, true)
 
-      // Flag all intersections
+      const hasHitTile = intersects.length && intersects[0].object.itemType === 'tile'
+      const hasHitModel = intersects.length && intersects[0].object.userData.modelGroup
+
+      if (hasHitModel) {
+        if (this.editTool === 'select') {
+          this.selectObject(hasHitModel)
+        }
+      }
+
+      // All actions that should be done if a tile is hit
       if (hasHitTile) {
         const name = intersects[0].object.name
         const instanceId = intersects[0].instanceId
@@ -603,13 +572,16 @@ export default {
           this.selectTile(name, instanceId)
         } else if (this.editTool === 'activate') {
           // no shift key, activate
-          toggleTileActiveState(name, instanceId, threeMap.instancedMeshesVuex[name].mesh)
+          toggleTileActiveState(name, instanceId, threeMap.instancedMeshes[name].mesh)
+        } else if (this.editTool === 'addModel' && this.addModelType !== null) {
+          let positionVec = getTilePosition(name, instanceId, threeMap.instancedMeshes)
+          this.addModelByType(this.addModelType, positionVec)
         }
       }
 
       // "unoccupied" board spaces intersections
       if (this.editTool === 'create' && this.creationTileType !== null && !hasHitTile) {
-        this.raycaster.setFromCamera(this.mouse, this.camera)
+        this.raycaster.setFromCamera(this.mouse, threeMap.camera)
 
         let objectsIntersects = this.raycaster.intersectObjects(this.objects, true)
 
@@ -637,10 +609,10 @@ export default {
       }
 
       setMouse(this.mouse, event, this.container)
-      this.raycaster.setFromCamera(this.mouse, this.camera)
+      this.raycaster.setFromCamera(this.mouse, threeMap.camera)
 
       // Check if we hit a tile, if so we don't want to hide the mesh
-      let boardIntersects = this.raycaster.intersectObjects(this.boardGroup.children, true)
+      let boardIntersects = this.raycaster.intersectObjects(threeMap.boardGroup.children, true)
       const hasHitTile = boardIntersects.length && boardIntersects[0].object.itemType === 'tile'
       if (hasHitTile) {
         hideRollOver(this.rollOverMesh)
@@ -653,6 +625,7 @@ export default {
         var intersect = intersects[0]
 
         this.rollOverMesh.position.copy(intersect.point)
+        // this.rollOverMesh.position.add(this.oddOffsetVec)
         this.rollOverMesh.position.floor()
         this.rollOverMesh.position.y = 0
         this.rollOverMesh.position.add(this.rolloverOffsetVector)
@@ -662,7 +635,6 @@ export default {
      * Hammer pan
      */
     onHammerPan (hammerEvent) {
-      console.log('in renderer on hammer pan')
       this.onMouseClick(hammerEvent.srcEvent)
     },
     selectTile (name, instanceId) {
@@ -670,22 +642,34 @@ export default {
       this.$store.dispatch('threeMap/selectTile', { name, instanceId })
 
       // get position of selected tile and assign marker to that position
-      let positionVec = getTilePosition(name, instanceId, threeMap.instancedMeshesVuex)
-      const currentY = threeMap.selectionHighlighter.position.y
+      let positionVec = getTilePosition(name, instanceId, threeMap.instancedMeshes)
+      const currentY = 0.25
       threeMap.highlighterTargetTile({ x: positionVec.x, y: currentY, z: positionVec.z })
     },
+    selectObject (object) {
+      // set selected object
+      this.$store.dispatch('threeMap/selectModel', object.name)
+
+      const position = object.getWorldPosition()
+      const boundingBox = new THREE.Box3().setFromObject(object)
+      position.y = boundingBox.max.y
+      threeMap.highlighterTargetTile(position)
+    },
     addTileByType (type, position) {
-      if (threeMap.instancedMeshesVuex.hasOwnProperty(type)) {
+      if (threeMap.instancedMeshes.hasOwnProperty(type)) {
         threeMap.addInstance({ matrix: position.matrix, name: type })
       } else {
         console.error(`Invalid tile type: '${type}'`)
       }
     },
+    addModelByType (type, position, rotation) {
+      this.loadModelAsync(type, position, rotation)
+    },
     toggleControlsVisibility () {
       this.showControls = !this.showControls
     },
     getInstancedMeshKeyByIndex (index) {
-      return Object.keys(threeMap.instancedMeshesVuex)[index]
+      return Object.keys(threeMap.instancedMeshes)[index]
     },
     disposeScene () {
       this.stopScene = true

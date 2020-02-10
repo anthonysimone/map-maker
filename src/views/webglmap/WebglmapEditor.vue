@@ -43,8 +43,9 @@ export default {
     }
   },
   methods: {
-    saveMap ({ tilesJson }) {
+    saveMap ({ tilesJson, charactersJson }) {
       this.editableMapData.threejsTiles = tilesJson
+      this.editableMapData.threejsCharacters = charactersJson
 
       // Save map: Update action
       this.$store.dispatch('map/updateMap', {

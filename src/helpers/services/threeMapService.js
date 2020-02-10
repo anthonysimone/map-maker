@@ -1,8 +1,9 @@
 import * as THREE from 'three'
 import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils'
-import { setPan } from '@/components/threejs/MapRenderer/helpers'
 
 // Internal dependencies
+import { setPan } from '@/components/threejs/MapRenderer/helpers'
+import { rotateModel } from '@/components/threejs/MapRenderer/heroActions'
 import { getModelUrl, getModelScale, simpleLoadModel } from '@/components/threejs/MapRenderer/modelHelpers'
 
 // Helper objects
@@ -17,8 +18,13 @@ let hideMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
 export let threeMap = {
   // Global stuff
   scene: null,
+  renderer: null,
+  camera: null,
+  boardGroup: null,
 
   // Mesh stuff
+  geometries: null,
+  materials: null,
   instancedMeshes: null,
   controls: null,
   selectionHighlighter: null,
@@ -47,6 +53,21 @@ export let threeMap = {
   setMeshes (meshes) {
     this.instancedMeshes = meshes
   },
+  setGeometries (geometries) {
+    this.geometries = geometries
+  },
+  setMaterials (materials) {
+    this.materials = materials
+  },
+  setRenderer (renderer) {
+    this.renderer = renderer
+  },
+  setCamera (camera) {
+    this.camera = camera
+  },
+  setBoardGroup (boardGroup) {
+    this.boardGroup = boardGroup
+  },
   /**
    * Set selecton highlighter
    */
@@ -72,6 +93,15 @@ export let threeMap = {
    */
   characterInstancesByModelId (modelId) {
     return this.characterInstances[modelId]
+  },
+  /**
+   * Get character instances by model id
+   */
+  getCharacterGroup (modelType, instanceNumber) {
+    if (this.characterInstances[modelType]) {
+      return this.characterInstances[modelType].groups[`${modelType}-${instanceNumber}`]
+    }
+    return null
   },
 
   //
@@ -116,7 +146,7 @@ export let threeMap = {
    */
   deleteInstance ({ name, instanceId }) {
     this.instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix)
-    this.multiplyMatrices(instanceMatrix, hideMatrix)
+    matrix.multiplyMatrices(instanceMatrix, hideMatrix)
     this.instancedMeshes[name].mesh.setMatrixAt(instanceId, matrix)
     this.instancedMeshes[name].mesh.userData[instanceId.toString()].exists = false
     this.instancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
@@ -124,7 +154,7 @@ export let threeMap = {
   /**
    * Add model item
    */
-  addModelItem ({ modelKey, model, position, isNew }) {
+  addModelItem (modelKey, model, position, isNew, rotation = 0) {
     // use the current count for index and then increment to increase the total
     let count = this.characterInstances[modelKey].count++
 
@@ -142,16 +172,39 @@ export let threeMap = {
 
     // Make group and set initial position
     const group = new THREE.Group()
-    group.name = `${modelKey}_group_${count}`
-    group.position.set(position.x, position.y, position.z)
+    const name = `${modelKey}-${count}`
+    group.name = name
+    group.position.set(position.x, 0.25, position.z)
+
+    group.userData.rotation = rotation
+    if (rotation) {
+      group.rotateY(rotation * Math.PI / 2)
+    }
+
+    model.traverse(item => {
+      if (item.isMesh) {
+        item.userData.modelGroup = group
+      }
+    })
     group.add(model)
 
     // Add group to scene and store in characterInstances with saved reference to base
-    this.scene.add(group) // TODO: probably add to board
+    this.boardGroup.add(group)
     this.characterInstances[modelKey].groups = {
-      [`${modelKey}_${count}`]: {
+      [name]: {
         group
       }
+    }
+  },
+  /**
+   * Rotate model
+   */
+  rotateModel ({ modelType, instanceNumber }) {
+    let characterGroup = this.getCharacterGroup(modelType, instanceNumber)
+
+    if (characterGroup) {
+      rotateModel(characterGroup.group, false)
+      characterGroup.group.userData.rotation = (characterGroup.group.userData.rotation + 1) % 4
     }
   },
   /**
@@ -199,7 +252,12 @@ export let threeMap = {
    */
   clearMap () {
     this.scene = null
+    this.renderer = null
+    this.camera = null
+    this.boardGroup = null
     this.controls = null
+    this.geometries = null
+    this.materials = null
     this.instancedMeshes = null
     this.selectionHighlighter = null
     this.characterInstances = {}
@@ -208,7 +266,7 @@ export let threeMap = {
   //
   // Loaders
   //
-  loadModelObject ({ modelKey, position }) {
+  loadModelObject ({ modelKey, position, rotation }) {
     let modelInstances = this.characterInstancesByModelId(modelKey)
 
     if (modelInstances) {
@@ -216,7 +274,7 @@ export let threeMap = {
       let promise = modelInstances.base
       promise.then(result => {
         const clonedModel = SkeletonUtils.clone(result)
-        this.addModelItem({ modelKey, model: clonedModel, position, isNew: false })
+        this.addModelItem(modelKey, clonedModel, position, false, rotation)
       }).catch(err => {
         console.error(err)
       })
@@ -231,7 +289,7 @@ export let threeMap = {
       this.initializeNewModel({ modelKey, promise })
       // resolve the promise
       return promise.then(result => {
-        this.addModelItem({ modelKey, model: result, position, isNew: true })
+        this.addModelItem(modelKey, result, position, true, rotation)
       }).catch(err => {
         console.error(err)
       })

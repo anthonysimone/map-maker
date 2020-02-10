@@ -34,7 +34,7 @@ export const router = new Router({
     {
       path: '/map/add',
       name: 'map-add',
-      component: () => import('./views/MapAdd.vue'),
+      component: () => import('./views/webglmap/WebglmapAdd.vue'),
       meta: {
         requireAuth: true
       }

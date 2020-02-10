@@ -15,7 +15,7 @@ import { VueHammer } from 'vue2-hammer'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import {
   faMousePointer, faPlusSquare, faMinusSquare, faFastForward, faPlay,
-  faStarOfLife, faCaretSquareDown, faTv, faUndo
+  faStarOfLife, faCaretSquareDown, faTv, faUndo, faPlusCircle, faMinusCircle
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
@@ -34,6 +34,8 @@ Vue.use(VueHammer)
 library.add(faMousePointer)
 library.add(faPlusSquare)
 library.add(faMinusSquare)
+library.add(faPlusCircle)
+library.add(faMinusCircle)
 library.add(faFastForward)
 library.add(faPlay)
 library.add(faStarOfLife)

@@ -11,11 +11,13 @@ const state = {
 
   // Mesh stuff
   selectedTile: null,
+  selectedModel: null,
 
   // Tools
   editMode: 'normal',
   editTool: 'activate',
-  creationTileType: 'first'
+  creationTileType: 'first',
+  addModelType: null
 }
 
 const getters = {
@@ -24,11 +26,13 @@ const getters = {
 
   // Mesh stuff
   selectedTile: state => state.selectedTile,
+  selectedModel: state => state.selectedModel,
 
   // Tools
   editMode: state => state.editMode,
   editTool: state => state.editTool,
-  creationTileType: state => state.creationTileType
+  creationTileType: state => state.creationTileType,
+  addModelType: state => state.addModelType
 }
 
 const mutations = {
@@ -53,14 +57,20 @@ const mutations = {
   // Selection statet
   selectTile: (state, tileString) => {
     state.selectedTile = tileString
+    state.selectedModel = null
   },
-  clearTileSelection: (state) => {
+  clearSelection: (state) => {
     state.selectedTile = null
-    state.selectionHighlighter.visible = false
+    state.selectedModel = null
+    threeMap.selectionHighlighter.visible = false
+  },
+  selectModel: (state, modelString) => {
+    state.selectedModel = modelString
+    state.selectedTile = null
   },
 
   // Controls
-  setControlsPan: (enable) => {
+  setControlsPan: (state, enable) => {
     threeMap.setControlsPan(enable)
   },
 
@@ -73,6 +83,9 @@ const mutations = {
   },
   setCreationTileType: (state, tileType) => {
     state.creationTileType = tileType
+  },
+  setAddModelType: (state, modelType) => {
+    state.addModelType = modelType
   }
 }
 
@@ -90,8 +103,11 @@ const actions = {
   selectTile: ({ commit }, { name, instanceId }) => {
     commit('selectTile', `${name}-${instanceId}`)
   },
-  clearTileSelection: ({ commit }) => {
-    commit('clearTileSelection')
+  clearSelection: ({ commit }) => {
+    commit('clearSelection')
+  },
+  selectModel: ({ commit }, name) => {
+    commit('selectModel', name)
   },
 
   // Tools
@@ -110,6 +126,9 @@ const actions = {
   },
   setCreationTileType: ({ commit }, tileType) => {
     commit('setCreationTileType', tileType)
+  },
+  setAddModelType: ({ commit }, modelType) => {
+    commit('setAddModelType', modelType)
   }
 }
 
