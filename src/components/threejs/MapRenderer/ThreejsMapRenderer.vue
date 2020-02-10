@@ -553,11 +553,12 @@ export default {
       let intersects = this.raycaster.intersectObjects(threeMap.boardGroup.children, true)
 
       const hasHitTile = intersects.length && intersects[0].object.itemType === 'tile'
-      const hasHitModel = intersects.length && intersects[0].object.userData.modelGroup
+      const hasHitModel = intersects.length && intersects[0].object.userData.modelGroupName
 
       if (hasHitModel) {
+        const modelGroup = threeMap.getObjectByName(hasHitModel)
         if (this.editTool === 'select') {
-          this.selectObject(hasHitModel)
+          this.selectObject(modelGroup)
         }
       }
 

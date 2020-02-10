@@ -183,7 +183,7 @@ export let threeMap = {
 
     model.traverse(item => {
       if (item.isMesh) {
-        item.userData.modelGroup = group
+        item.userData.modelGroupName = name
       }
     })
     group.add(model)
@@ -206,6 +206,12 @@ export let threeMap = {
       rotateModel(characterGroup.group, false)
       characterGroup.group.userData.rotation = (characterGroup.group.userData.rotation + 1) % 4
     }
+  },
+  /**
+   * Get object by name
+   */
+  getObjectByName (name) {
+    return this.scene.getObjectByName(name)
   },
   /**
    * Set a tile as being highlighted
@@ -272,7 +278,7 @@ export let threeMap = {
     if (modelInstances) {
       // promise exists, resolve it
       let promise = modelInstances.base
-      promise.then(result => {
+      return promise.then(result => {
         const clonedModel = SkeletonUtils.clone(result)
         this.addModelItem(modelKey, clonedModel, position, false, rotation)
       }).catch(err => {
