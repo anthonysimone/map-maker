@@ -67,6 +67,7 @@ const auth = {
     // TODO: not sure if I need to actually clean up the log out here
     let loggedOut = firebase.auth().signOut()
     // this.context.$store.dispatch('user/logOut')
+    this.context.$store.dispatch('map/logOut')
     return loggedOut
   },
   isNewUser (user) {

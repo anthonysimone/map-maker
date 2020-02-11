@@ -22,6 +22,9 @@ const mutations = {
   deleteMap: (state, id) => {
     let index = state.mapsByUser.map(map => map.id).indexOf(id)
     state.mapsByUser.splice(index, 1)
+  },
+  logOut: (state) => {
+    state.mapsByUser = []
   }
 }
 
@@ -71,6 +74,9 @@ const actions = {
         reject(error)
       })
     })
+  },
+  logOut: ({ commit }) => {
+    commit('logOut')
   }
 }
 

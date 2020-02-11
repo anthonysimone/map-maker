@@ -63,6 +63,7 @@ export default {
   methods: {
     logout () {
       auth.logout()
+      this.$router.push({ name: 'home' })
     },
     toggleDropdown () {
       this.dropdownIsActive = !this.dropdownIsActive

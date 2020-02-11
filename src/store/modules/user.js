@@ -18,6 +18,7 @@ const mutations = {
   // TODO: not sure if i need this/clean up logout?
   logOut: (state) => {
     state.user = null
+    state.userProfile = null
   },
   setUserProfile: (state, userProfile) => {
     state.userProfile = userProfile
