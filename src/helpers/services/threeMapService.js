@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils'
 
 // Internal dependencies
-import { setPan } from '@/components/threejs/MapRenderer/helpers'
+import { setPan, deconstructModelStringId } from '@/components/threejs/MapRenderer/helpers'
 import { rotateModel } from '@/components/threejs/MapRenderer/heroActions'
 import { getModelUrl, getModelScale, simpleLoadModel } from '@/components/threejs/MapRenderer/modelHelpers'
 
@@ -206,6 +206,15 @@ export let threeMap = {
     }
   },
   /**
+   * Delete model
+   */
+  deleteModel (modelGroup) {
+    const { modelType } = deconstructModelStringId(modelGroup.name)
+    delete this.characterInstances[modelType].groups[modelGroup.name]
+    this.boardGroup.remove(modelGroup)
+    this.disposeObject(modelGroup)
+  },
+  /**
    * Get object by name
    */
   getObjectByName (name) {
@@ -219,22 +228,28 @@ export let threeMap = {
     this.selectionHighlighter.visible = true
   },
   /**
+   * Dispose object
+   */
+  disposeObject (object) {
+    object.traverse(item => {
+      if (!item.isMesh) return
+
+      item.geometry.dispose()
+
+      if (item.material.isMaterial) {
+        this.cleanMaterial(item.material)
+      } else {
+        // an array of materials
+        for (const material of item.material) this.cleanMaterial(material)
+      }
+    })
+  },
+  /**
    * Dispose scene
    */
   disposeScene () {
     this.controls.dispose()
-    this.scene.traverse(object => {
-      if (!object.isMesh) return
-
-      object.geometry.dispose()
-
-      if (object.material.isMaterial) {
-        this.cleanMaterial(object.material)
-      } else {
-        // an array of materials
-        for (const material of object.material) this.cleanMaterial(material)
-      }
-    })
+    this.disposeObject(this.scene)
     this.scene = null
   },
   /**

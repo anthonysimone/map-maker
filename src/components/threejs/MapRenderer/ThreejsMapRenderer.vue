@@ -557,6 +557,8 @@ export default {
         const modelGroup = threeMap.getObjectByName(hasHitModel)
         if (this.editTool === 'select') {
           this.selectObject(modelGroup)
+        } else if (this.editTool === 'deleteModel') {
+          threeMap.deleteModel(modelGroup)
         }
       }
 
