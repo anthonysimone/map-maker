@@ -190,10 +190,8 @@ export let threeMap = {
 
     // Add group to scene and store in characterInstances with saved reference to base
     this.boardGroup.add(group)
-    this.characterInstances[modelKey].groups = {
-      [name]: {
-        group
-      }
+    this.characterInstances[modelKey].groups[name] = {
+      group
     }
   },
   /**

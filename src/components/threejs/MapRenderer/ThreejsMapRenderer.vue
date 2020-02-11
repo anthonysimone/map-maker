@@ -60,7 +60,6 @@ export default {
       raycaster: new THREE.Raycaster(),
       mouse: new THREE.Vector2(),
       transform: new THREE.Object3D(),
-      vector3: new THREE.Vector3(),
       rolloverOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       initialTileOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       matrix: new THREE.Matrix4(),
@@ -457,8 +456,7 @@ export default {
       // Add saved characters
       if (this.map.threejsCharacters) {
         this.map.threejsCharacters.forEach(character => {
-          this.vector3.set(character.position.x, character.position.y, character.position.z)
-          this.addModelByType(character.type, this.vector3, character.rotation)
+          this.addModelByType(character.type, character.position, character.rotation)
         })
       }
 
