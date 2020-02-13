@@ -602,7 +602,7 @@ export default {
      */
     onDocumentMouseMove (event) {
       event.preventDefault()
-      if (event.target.id !== 'map-canvas') {
+      if (event.target.id !== 'map-canvas' || this.editTool !== 'create') {
         return
       }
 
