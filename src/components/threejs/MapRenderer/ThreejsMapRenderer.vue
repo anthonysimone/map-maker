@@ -389,6 +389,7 @@ export default {
       // Add checkerboard
       // TODO: determine what to do with checkerboard
       const boardBase = new THREE.Mesh(threeMap.geometries.board, threeMap.materials.stage)
+      boardBase.name = 'board-grid'
       boardBase.position.y = -0.01
       boardBase.rotation.x = Math.PI * -0.5
       threeMap.boardGroup.add(boardBase)
@@ -582,12 +583,8 @@ export default {
 
       // "unoccupied" board spaces intersections
       if (this.editTool === 'create' && this.creationTileType !== null && !hasHitTile) {
-        this.raycaster.setFromCamera(this.mouse, threeMap.camera)
-
-        let objectsIntersects = this.raycaster.intersectObjects(this.objects, true)
-
-        if (objectsIntersects.length > 0) {
-          let intersect = objectsIntersects[0]
+        if (intersects.length > 0) {
+          let intersect = intersects[0]
 
           intersect.point.floor()
           intersect.point.y = 0
@@ -613,23 +610,17 @@ export default {
       this.raycaster.setFromCamera(this.mouse, threeMap.camera)
 
       // Check if we hit a tile, if so we don't want to hide the mesh
-      let boardIntersects = this.raycaster.intersectObjects(threeMap.boardGroup.children, true)
-      const hasHitTile = boardIntersects.length && boardIntersects[0].object.itemType === 'tile'
-      if (hasHitTile) {
-        hideRollOver(this.rollOverMesh)
-        return
-      }
-
-      // If we haven't hit a tile, check where in the grid we are and position rollover
-      let intersects = this.raycaster.intersectObjects(this.objects, true)
-      if (intersects.length > 0) {
-        var intersect = intersects[0]
-
+      let boardIntersects = this.raycaster.intersectObjects(threeMap.boardGroup.children, false)
+      // console.log('boardIntersects', boardIntersects)
+      const hasHitGrid = boardIntersects.length && boardIntersects[0].object.name === 'board-grid'
+      if (hasHitGrid) {
+        const intersect = boardIntersects[0]
         this.rollOverMesh.position.copy(intersect.point)
-        // this.rollOverMesh.position.add(this.oddOffsetVec)
         this.rollOverMesh.position.floor()
         this.rollOverMesh.position.y = 0
         this.rollOverMesh.position.add(this.rolloverOffsetVector)
+      } else {
+        hideRollOver(this.rollOverMesh)
       }
     },
     /**
