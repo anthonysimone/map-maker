@@ -40,7 +40,8 @@ export function generateCharactersJson (characterInstances) {
       const instance = {
         type,
         position: { x: vec.x, y: vec.y, z: vec.z },
-        rotation: characterGroup.userData.rotation
+        rotation: characterGroup.userData.rotation,
+        defaultAction: characterGroup.userData.currentAction
       }
 
       characters.push(instance)

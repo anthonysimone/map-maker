@@ -3,8 +3,12 @@ import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils'
 
 // Internal dependencies
 import { setPan, deconstructModelStringId } from '@/components/threejs/MapRenderer/helpers'
-import { rotateModel } from '@/components/threejs/MapRenderer/heroActions'
-import { getModelUrl, getModelScale, simpleLoadModel } from '@/components/threejs/MapRenderer/modelHelpers'
+import { rotateModel, moveForward, moveBackward } from '@/components/threejs/MapRenderer/heroActions'
+import {
+  getModelUrl, getModelScale, getModelRotation, getModelAnimations,
+  simpleLoadModel,
+  fadeToAction, fadeOutAction
+} from '@/components/threejs/MapRenderer/modelHelpers'
 
 // Helper objects
 let instanceMatrix = new THREE.Matrix4()
@@ -21,6 +25,7 @@ export let threeMap = {
   renderer: null,
   camera: null,
   boardGroup: null,
+  mixers: [],
 
   // Mesh stuff
   geometries: null,
@@ -103,6 +108,34 @@ export let threeMap = {
     }
     return null
   },
+  /**
+   * Get model actions
+   */
+  getModelActions (modelType, instanceNumber) {
+    const model = this.getCharacterGroup(modelType, instanceNumber)
+    if (model && model.actions) {
+      return model.actions
+    }
+
+    return null
+  },
+  /**
+   * Get the current action the model is using as state.
+   */
+  getModelCurrentAction (modelType, instanceNumber) {
+    const model = this.getCharacterGroup(modelType, instanceNumber)
+    if (model && model.group.userData.currentAction) {
+      return model.group.userData.currentAction
+    }
+
+    return 'none'
+  },
+  /**
+   * Get the mixer for a given model.
+   */
+  getModelMixer (modelType, instanceNumber) {
+    return this.getCharacterGroup(modelType, instanceNumber).mixer
+  },
 
   //
   // Methods
@@ -154,17 +187,46 @@ export let threeMap = {
   /**
    * Add model item
    */
-  addModelItem (modelKey, model, position, isNew, rotation = 0) {
-    // use the current count for index and then increment to increase the total
+  addModelItem (modelKey, model, animations, defaultAction, position, isNew, rotation = 0) {
     let count = this.characterInstances[modelKey].count++
+
+    // use the current count for index and then increment to increase the total
+    let mixer = null
+    let actions = {}
+    if (animations.length) {
+      mixer = new THREE.AnimationMixer(model)
+      const animationsMetadata = getModelAnimations(modelKey)
+      for (let i = 0; i < animations.length; i++) {
+        let clip = animations[i]
+        let action = mixer.clipAction(clip)
+        actions[clip.name] = action
+
+        if (animationsMetadata) {
+          let animationMetadata = animationsMetadata.filter(anim => anim.clipName === clip.name)[0]
+          let runOnce = animationMetadata.clampEnd || animationMetadata.type === 'emote'
+          if (runOnce) {
+            actions[clip.name].clampWhenFinished = true
+            actions[clip.name].loop = THREE.LoopOnce
+          }
+        }
+      }
+
+      this.mixers.push(mixer)
+    }
 
     // For the first time, we need to normalize it to our world.
     // This transform remains for future cloned items.
     if (isNew) {
       const modelMatrix = new THREE.Matrix4()
+
+      const modelRotation = getModelRotation(modelKey)
+      modelMatrix.makeRotationY(modelRotation)
+
       const modelScale = getModelScale(modelKey)
-      modelMatrix.makeScale(modelScale.x, modelScale.y, modelScale.z)
+      modelMatrix.scale(modelScale)
+
       modelMatrix.setPosition(0, 0, 0)
+
       model.applyMatrix(modelMatrix)
     }
 
@@ -188,21 +250,99 @@ export let threeMap = {
     })
     group.add(model)
 
+    if (defaultAction) {
+      group.userData.currentAction = defaultAction
+      // Add timeout to stagger init of same animations on same models
+      setTimeout(() => {
+        fadeToAction(actions[defaultAction], 0.5)
+      }, Math.floor(Math.random() * 2000))
+    } else {
+      group.userData.currentAction = null
+    }
+
     // Add group to scene and store in characterInstances with saved reference to base
     this.boardGroup.add(group)
     this.characterInstances[modelKey].groups[name] = {
-      group
+      group,
+      mixer,
+      actions
     }
   },
   /**
    * Rotate model
    */
-  rotateModel ({ modelType, instanceNumber }) {
+  rotateModel (modelType, instanceNumber, isClockwise = true) {
     let characterGroup = this.getCharacterGroup(modelType, instanceNumber)
 
     if (characterGroup) {
-      rotateModel(characterGroup.group, false)
+      rotateModel(characterGroup.group, isClockwise)
       characterGroup.group.userData.rotation = (characterGroup.group.userData.rotation + 1) % 4
+    }
+  },
+  /**
+   * Move model forward
+   */
+  moveModelForward (modelType, instanceNumber) {
+    let characterGroup = this.getCharacterGroup(modelType, instanceNumber)
+
+    if (characterGroup) {
+      moveForward(characterGroup.group)
+    }
+  },
+  /**
+   * Move model backward
+   */
+  moveModelBackward (modelType, instanceNumber) {
+    let characterGroup = this.getCharacterGroup(modelType, instanceNumber)
+
+    if (characterGroup) {
+      moveBackward(characterGroup.group)
+    }
+  },
+  /**
+   * Set model action
+   */
+  setModelAction (modelString, action) {
+    const { modelType, instanceNumber } = deconstructModelStringId(modelString)
+    const character = this.getCharacterGroup(modelType, instanceNumber)
+    const group = character.group
+    const currentAction = group.userData.currentAction
+    if (currentAction) {
+      fadeOutAction(character.actions[currentAction], 0.5)
+    }
+
+    if (action) {
+      fadeToAction(character.actions[action], 0.5)
+    }
+
+    group.userData.currentAction = action
+  },
+  /**
+   * Set model emote.
+   *
+   * If model has a current action, fades out, runs the emote, and fades the action back in.
+   */
+  triggerModelEmote (modelString, emote) {
+    const { modelType, instanceNumber } = deconstructModelStringId(modelString)
+    const character = this.getCharacterGroup(modelType, instanceNumber)
+    const currentActionName = character.group.userData.currentAction
+
+    const mixer = this.getModelMixer(modelType, instanceNumber)
+    if (currentActionName) {
+      fadeOutAction(character.actions[currentActionName], 0.2)
+      mixer.addEventListener('finished', restoreStateCallback)
+    }
+
+    fadeToAction(character.actions[emote], 0.2)
+
+    function restoreStateCallback () {
+      mixer.removeEventListener('finished', restoreStateCallback)
+
+      fadeOutAction(character.actions[emote], 0.2)
+
+      if (currentActionName) {
+        fadeToAction(character.actions[currentActionName], 0.2)
+      }
     }
   },
   /**
@@ -285,15 +425,24 @@ export let threeMap = {
   //
   // Loaders
   //
-  loadModelObject ({ modelKey, position, rotation }) {
+  /**
+   * Load a model.
+   *
+   * Note - we are using skeletton utils to clone the scene in both cases, this way, the source
+   * that is cloned for new objects will always exist in its original state.
+   *
+   * TODO: need to handle this properly - If we didn't do this, a new item might be created at the current position of the first model,
+   * possibly mid animation, for example.
+   */
+  loadModelObject ({ modelKey, position, rotation, defaultAction }) {
     let modelInstances = this.characterInstancesByModelId(modelKey)
 
     if (modelInstances) {
       // promise exists, resolve it
       let promise = modelInstances.base
       return promise.then(result => {
-        const clonedModel = SkeletonUtils.clone(result)
-        this.addModelItem(modelKey, clonedModel, position, false, rotation)
+        const clonedModel = SkeletonUtils.clone(result.scene)
+        this.addModelItem(modelKey, clonedModel, result.animations, defaultAction, position, false, rotation)
       }).catch(err => {
         console.error(err)
       })
@@ -308,7 +457,9 @@ export let threeMap = {
       this.initializeNewModel({ modelKey, promise })
       // resolve the promise
       return promise.then(result => {
-        this.addModelItem(modelKey, result, position, true, rotation)
+        // const clonedModel = SkeletonUtils.clone(result.scene)
+        // TODO: do something here to handle this
+        this.addModelItem(modelKey, result.scene, result.animations, defaultAction, position, true, rotation)
       }).catch(err => {
         console.error(err)
       })
@@ -336,3 +487,6 @@ export function clearRenderer () {
     renderer: null
   }
 }
+
+// Uncomment for easier debugging
+// window.threeMap = threeMap

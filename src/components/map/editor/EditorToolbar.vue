@@ -156,6 +156,7 @@ export default {
       // Get all of the instanced mesh keys
       let tilesJson = generateTilesJson(threeMap.instancedMeshes)
       let charactersJson = generateCharactersJson(threeMap.characterInstances)
+      console.log('characterjson', charactersJson)
 
       this.$emit('saveMap', { tilesJson, charactersJson })
     }

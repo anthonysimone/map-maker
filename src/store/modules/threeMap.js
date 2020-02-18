@@ -15,7 +15,7 @@ const state = {
 
   // Tools
   editMode: 'normal',
-  editTool: 'activate',
+  editTool: 'select',
   creationTileType: 'first',
   addModelType: null
 }

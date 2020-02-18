@@ -48,9 +48,6 @@ export default {
       // three map objects
       container: null,
 
-      // animation helpers
-      mixers: [], // probably move this over to threeMap once I'm actually using it
-
       // three helper ojects
       backgroundColor: new THREE.Color(0x8fbcd4),
       rollOverGeo: null,
@@ -115,7 +112,6 @@ export default {
 
       this.createMeshes()
 
-      this.loadRobotModel()
       this.createRenderer()
 
       threeMap.renderer.setAnimationLoop((time) => {
@@ -177,84 +173,8 @@ export default {
      * Generic load model method using the service setup via veux
      * TODO: does this still need to be / should this still be async?
      */
-    async loadModelAsync (modelKey, position, rotation) {
-      await threeMap.loadModelObject({ modelKey, position, rotation })
-    },
-    /**
-     * Load Robot Model
-     */
-    loadRobotModel () {
-      // this.loadModelAsync('robot', { x: 0.5, y: 0.25, z: 0.5 })
-
-      // this.loadModelAsync('tile', { x: 0.5, y: 0.25, z: 0.5 })
-      // this.loadModelAsync('wall', { x: 2.5, y: 0.25, z: 2.5 })
-      // this.loadModelAsync('stairs', { x: 0.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('tile', { x: 1.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('slime', { x: 3.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('slime', { x: 4.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('slime', { x: 5.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('slime', { x: 1.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('slime', { x: 2.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('slime', { x: 3.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('slime', { x: 4.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('slime', { x: 5.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('slime', { x: 1.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('slime', { x: 2.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('slime', { x: 3.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('slime', { x: 4.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('slime', { x: 5.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('slime', { x: 1.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('slime', { x: 2.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('slime', { x: 3.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('slime', { x: 4.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('slime', { x: 5.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('slime', { x: 1.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('skeleton', { x: 2.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('skeleton', { x: 3.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('skeleton', { x: 4.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('skeleton', { x: 5.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('skeleton', { x: 1.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('skeleton', { x: 2.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('skeleton', { x: 3.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('skeleton', { x: 4.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('skeleton', { x: 5.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('skeleton', { x: 5.5, y: 2.25, z: 5.5 })
-
-      // this.loadModelAsync('dad', { x: 0.5, y: 0.25, z: 0.5 })
-      // this.loadModelAsync('dad', { x: 2.5, y: 0.25, z: 2.5 })
-      // this.loadModelAsync('dad', { x: 0.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 0.5 })
-      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 1.5 })
-      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 2.5 })
-      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 3.5 })
-      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 4.5 })
-      // this.loadModelAsync('dad', { x: 1.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('dad', { x: 2.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('dad', { x: 3.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('dad', { x: 4.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 5.5 })
-      // this.loadModelAsync('dad', { x: 5.5, y: 2.25, z: 5.5 })
+    async loadModelAsync (modelKey, position, rotation, defaultAction) {
+      await threeMap.loadModelObject({ modelKey, position, rotation, defaultAction })
     },
     /**
      * Load Models
@@ -457,7 +377,7 @@ export default {
       // Add saved characters
       if (this.map.threejsCharacters) {
         this.map.threejsCharacters.forEach(character => {
-          this.addModelByType(character.type, character.position, character.rotation)
+          this.addModelByType(character.type, character.position, character.rotation, character.defaultAction)
         })
       }
 
@@ -485,7 +405,7 @@ export default {
       renderer.setPixelRatio(window.devicePixelRatio)
 
       renderer.gammaFactor = 2.2
-      renderer.gammaOutput = true
+      renderer.outputEncoding = THREE.sRGBEncoding
 
       renderer.physicallyCorrectLights = true
 
@@ -505,8 +425,8 @@ export default {
 
       // Handle updating objects with animation mixers
       let dt = this.clock.getDelta()
-      if (this.mixers.length) {
-        this.mixers.forEach(mixer => {
+      if (threeMap.mixers.length) {
+        threeMap.mixers.forEach(mixer => {
           mixer.update(dt)
         })
       }
@@ -611,7 +531,7 @@ export default {
 
       // Check if we hit a tile, if so we don't want to hide the mesh
       let boardIntersects = this.raycaster.intersectObjects(threeMap.boardGroup.children, false)
-      // console.log('boardIntersects', boardIntersects)
+
       const hasHitGrid = boardIntersects.length && boardIntersects[0].object.name === 'board-grid'
       if (hasHitGrid) {
         const intersect = boardIntersects[0]
@@ -654,8 +574,8 @@ export default {
         console.error(`Invalid tile type: '${type}'`)
       }
     },
-    addModelByType (type, position, rotation) {
-      this.loadModelAsync(type, position, rotation)
+    addModelByType (type, position, rotation, defaultAction = null) {
+      this.loadModelAsync(type, position, rotation, defaultAction)
     },
     toggleControlsVisibility () {
       this.showControls = !this.showControls
