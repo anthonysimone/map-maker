@@ -180,6 +180,11 @@ export default {
 
       threeMap.setCamera(this.createCamera())
       threeMap.setControls(this.createControls())
+
+      let minPan = new THREE.Vector3(-this.boardSize / 2, -this.boardSize / 2, -this.boardSize / 2)
+      let maxPan = new THREE.Vector3(this.boardSize / 2, this.boardSize / 2, this.boardSize / 2)
+      threeMap.restrictControlsPan(minPan, maxPan)
+
       this.createLights()
 
       this.createGrid()
@@ -208,7 +213,7 @@ export default {
       const fov = 60 // Field of view
       const aspect = this.container.clientWidth / this.container.clientHeight
       const near = 0.1 // the near clipping plane
-      const far = 30 // the far clipping plane
+      const far = 60 // the far clipping plane
 
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
 
@@ -273,6 +278,7 @@ export default {
 
       // add grid
       let gridHelper = new THREE.GridHelper(this.boardSize, this.boardSize, 0x444444, 0x666666)
+      gridHelper.name = 'board-grid-helper'
       gridGroup.add(gridHelper)
 
       let planeGeometry = new THREE.PlaneBufferGeometry(this.boardSize, this.boardSize)

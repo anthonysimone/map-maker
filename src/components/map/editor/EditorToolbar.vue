@@ -61,6 +61,11 @@
         </p>
       </div>
 
+      <!-- Scene settings -->
+      <button @click="changeEditTool('scene')" class="button is-small" :class="{'is-active': editTool === 'scene'}" content="Edit global settings for this scene" v-tippy="{ placement : 'bottom',  arrow: true }">
+        Edit scene
+      </button>
+
       <div class="divider"></div>
 
       <!-- Edit Mode -->

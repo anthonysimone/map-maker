@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import StarrySkyShader from '../../components/threejs/shaders/StarrySkyShader'
 
 // Internal dependencies
 import { setPan, deconstructModelStringId } from '@/components/threejs/MapRenderer/helpers'
@@ -26,6 +27,7 @@ export let threeMap = {
   mixers: [],
 
   // Mesh stuff
+  skydome: null,
   geometries: null,
   materials: null,
   tileInstancedMeshes: null,
@@ -70,6 +72,56 @@ export let threeMap = {
   },
   setBoardGroup (boardGroup) {
     this.boardGroup = boardGroup
+  },
+  setSkydome (domeType) {
+    if (this.skydome) {
+      this.scene.remove(this.skydome)
+      this.disposeObject(this.skydome)
+      this.skydome = null
+    }
+
+    if (domeType === 'starrySky') {
+      const dome = this.createStarrySkydome(domeType)
+      this.skydome = dome
+      this.scene.add(dome)
+    }
+  },
+  createStarrySkydome (domeType) {
+    /* Starry SkyDome ShaderMaterial
+      *
+      * The parameters on this shader can be played around with for different effects.
+      *
+      * Use the offset parameter to shift the noise pattern, avoiding large clusters in places you don't
+      * want them. The rest of the parameters are better described visually.
+      */
+    let skyDomeRadius = 50.01
+    let sphereMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        skyRadius: { value: skyDomeRadius },
+        time: { value: 0 },
+        env_c1: { value: new THREE.Color('#0d1a2f') },
+        env_c2: { value: new THREE.Color('#0f8682') },
+        noiseOffset: { value: new THREE.Vector3(100.01, 100.01, 100.01) },
+        starSize: { value: 0.01 },
+        starDensity: { value: 0.09 },
+        clusterStrength: { value: 0.2 },
+        clusterSize: { value: 0.2 }
+      },
+      vertexShader: StarrySkyShader.vertexShader,
+      fragmentShader: StarrySkyShader.fragmentShader,
+      side: THREE.DoubleSide
+    })
+    let sphereGeometry = new THREE.SphereGeometry(skyDomeRadius, 20, 20)
+    let skyDome = new THREE.Mesh(sphereGeometry, sphereMaterial)
+
+    return skyDome
+  },
+  toggleGridDisplay (showGrid) {
+    const boardGrid = this.scene.getObjectByName('board-grid')
+    const gridHelper = this.scene.getObjectByName('board-grid-helper')
+
+    boardGrid.visible = showGrid
+    gridHelper.visible = showGrid
   },
   /**
    * Set selecton highlighter
@@ -142,6 +194,19 @@ export let threeMap = {
    */
   setControlsPan (enable) {
     setPan(this.controls, enable)
+  },
+  /**
+   * Restrict panning for map
+   */
+  restrictControlsPan (minPan, maxPan) {
+    let _v = new THREE.Vector3()
+
+    this.controls.addEventListener('change', () => {
+      _v.copy(this.controls.target)
+      this.controls.target.clamp(minPan, maxPan)
+      _v.sub(this.controls.target)
+      this.camera.position.sub(_v)
+    })
   },
   /**
    * Add instance

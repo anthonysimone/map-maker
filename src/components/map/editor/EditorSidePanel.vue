@@ -123,6 +123,21 @@
         </button>
       </div>
     </section>
+
+      <!-- Add model contextual controls -->
+    <section>
+      <div class="control edit-scene-settings" v-if="editTool === 'scene'">
+        <p class="description">Edit general scene settings here!</p>
+        <label class="button-group-label">Sky background</label>
+        <select v-model="selectedSky" @change="setSky">
+          <option value="none" :selected="selectedSky === 'none'">None</option>
+          <option value="starrySky" :selected="selectedSky === 'starrySky'">Starry Sky</option>
+        </select>
+        <label class="button-group-label">Toggle grid</label>
+        <button @click="toggleGrid">{{ showGrid ? 'Show' : 'Hide' }} grid</button>
+      </div>
+    </section>
+
   </div>
 </template>
 
@@ -137,7 +152,9 @@ export default {
   name: 'editor-side-panel',
   data () {
     return {
-      selectedAction: 'none'
+      selectedAction: 'none',
+      selectedSky: 'none',
+      showGrid: true
     }
   },
   computed: {
@@ -245,6 +262,13 @@ export default {
     },
     triggerEmote (emote) {
       threeMap.triggerModelEmote(this.selectedModel, emote)
+    },
+    setSky () {
+      threeMap.setSkydome(this.selectedSky)
+    },
+    toggleGrid () {
+      this.showGrid = !this.showGrid
+      threeMap.toggleGridDisplay(this.showGrid)
     }
   }
 }
