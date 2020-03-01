@@ -25,6 +25,10 @@
           <input type="radio" value="fifth" name="creationTileType" v-model="creationTileType">
           <span>Pit</span>
         </label>
+        <label class="radio-label">
+          <input type="radio" value="specialFloor" name="creationTileType" v-model="creationTileType">
+          <span>Cool Floor</span>
+        </label>
       </div>
     </div>
 

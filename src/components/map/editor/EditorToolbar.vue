@@ -139,12 +139,12 @@ export default {
       this.$store.dispatch('threeMap/setEditTool', editTool)
     },
     resetAllTiles () {
-      let instancedMeshNames = Object.keys(threeMap.instancedMeshes)
+      let instancedMeshNames = Object.keys(threeMap.tileInstancedMeshes)
       instancedMeshNames.forEach(name => {
-        let instanceKeys = Object.keys(threeMap.instancedMeshes[name].mesh.userData)
+        let instanceKeys = Object.keys(threeMap.tileInstancedMeshes[name].mesh.userData)
         instanceKeys.forEach(instanceId => {
-          if (threeMap.instancedMeshes[name].mesh.userData[instanceId].isActive) {
-            tweenActiveTileToggle(threeMap.instancedMeshes[name].mesh, instanceId, false)
+          if (threeMap.tileInstancedMeshes[name].mesh.userData[instanceId].isActive) {
+            tweenActiveTileToggle(threeMap.tileInstancedMeshes[name].mesh, instanceId, false)
           }
         })
       })
@@ -154,9 +154,8 @@ export default {
     },
     saveMap () {
       // Get all of the instanced mesh keys
-      let tilesJson = generateTilesJson(threeMap.instancedMeshes)
+      let tilesJson = generateTilesJson(threeMap.tileInstancedMeshes)
       let charactersJson = generateCharactersJson(threeMap.characterInstances)
-      console.log('characterjson', charactersJson)
 
       this.$emit('saveMap', { tilesJson, charactersJson })
     }

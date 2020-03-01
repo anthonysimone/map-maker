@@ -1,9 +1,11 @@
 export const models = {
   dad: {
+    name: 'dad',
     url: '/threejs/models/90s_dad/scene.gltf',
     normalizationScale: { x: 0.125, y: 0.125, z: 0.125 }
   },
   robot: {
+    name: 'robot',
     url: '/threejs/models/RobotExpressive/RobotExpressive.glb',
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
@@ -87,10 +89,12 @@ export const models = {
     ]
   },
   robotStatic: {
+    name: 'robotStatic',
     url: '/threejs/models/RobotExpressive/RobotStatic.glb',
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 }
   },
   goblin: {
+    name: 'goblin',
     url: '/threejs/models/Goblin/Goblin.glb',
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
@@ -141,6 +145,7 @@ export const models = {
     ]
   },
   bat: {
+    name: 'bat',
     url: '/threejs/models/Monsters/Bat.glb',
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
@@ -174,6 +179,7 @@ export const models = {
     ]
   },
   slime: {
+    name: 'slime',
     url: '/threejs/models/Monsters/Slime.glb',
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     normalizationRotation: -Math.PI / 2,
@@ -204,10 +210,12 @@ export const models = {
     ]
   },
   dragon: {
+    name: 'dragon',
     url: '/threejs/models/Monsters/Dragon.glb',
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 }
   },
   skeleton: {
+    name: 'skeleton',
     url: '/threejs/models/Monsters/Skeleton.glb',
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
@@ -244,14 +252,17 @@ export const models = {
   },
   // Dungeon pieces
   tile: {
+    name: 'tile',
     url: '/threejs/models/Dungeon_Modules/glb/Floor_Modular.glb',
     normalizationScale: { x: 1, y: 1, z: 1 }
   },
   stairs: {
+    name: 'stairs',
     url: '/threejs/models/Dungeon_Modules/glb/Stairs_Modular.glb',
     normalizationScale: { x: 1, y: 1, z: 1 }
   },
   wall: {
+    name: 'wall',
     url: '/threejs/models/Dungeon_Modules/glb/Wall_Modular.glb',
     normalizationScale: { x: 1, y: 1, z: 1 }
   }

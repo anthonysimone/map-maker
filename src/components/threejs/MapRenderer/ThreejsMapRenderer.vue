@@ -2,6 +2,7 @@
   <div class="threejs-map-renderer">
     <div id="scene-container" ref="sceneContainer"></div>
     <div class="stats-container" ref="statsContainer"></div>
+    <div class="loading-screen" :class="{'loading': loading}" v-if="showLoading"><div class="loader"></div></div>
   </div>
 </template>
 
@@ -9,6 +10,7 @@
 import { mapGetters } from 'vuex'
 import * as THREE from 'three'
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls'
+
 import Stats from 'stats.js'
 import * as TWEEN from 'es6-tween'
 import * as Hammer from 'hammerjs'
@@ -20,8 +22,11 @@ import {
   getTilePosition,
   hideRollOver
 } from './tileActions'
+import { getModelUrl } from './modelHelpers'
+import { createTileMesh, getTileModel } from './tileModels'
 
 import { threeMap } from '@/helpers/services/threeMapService'
+import { threeAssets } from '@/helpers/services/threeAssetService'
 
 export default {
   name: 'threejs-map-renderer',
@@ -36,6 +41,9 @@ export default {
   },
   data () {
     return {
+      loading: false,
+      showLoading: false,
+
       id: this.$route.params.id,
       tilesNumber: this.map.tilesWidth,
       // tilesNumber: this.map.tilesWidth,
@@ -60,7 +68,11 @@ export default {
       rolloverOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       initialTileOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       matrix: new THREE.Matrix4(),
-      instanceMatrix: new THREE.Matrix4()
+      instanceMatrix: new THREE.Matrix4(),
+
+      // default values
+      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor'],
+      usedCharacters: ['robot', 'slime', 'skeleton', 'goblin', 'bat']
     }
   },
   computed: {
@@ -80,6 +92,74 @@ export default {
     }
   },
   methods: {
+    queueAssetsToLoad () {
+      // Queue necessary assets for tiles
+      let usedTiles = this.map.threejsTiles.reduce((uniqueTiles, tile) => {
+        if (uniqueTiles.indexOf(tile.type) === -1) {
+          uniqueTiles.push(tile.type)
+        }
+
+        return uniqueTiles
+      }, this.usedTiles)
+
+      this.usedTiles = usedTiles
+
+      this.usedTiles.forEach(tile => {
+        const tileModel = getTileModel(tile)
+        if (tileModel.type === 'basic') {
+          threeAssets.queueAsset('texture', tile, tileModel.url)
+        } else if (tileModel.type === 'gltf') {
+          threeAssets.queueAsset('gltf', tile, tileModel.url)
+        }
+      })
+
+      const tileModel = getTileModel('specialFloor')
+      threeAssets.queueAsset('gltf', 'specialFloor', tileModel.url)
+
+      // Queue necessary assets for characters
+      let usedCharacters = this.map.threejsCharacters.reduce((uniqueChars, character) => {
+        if (uniqueChars.indexOf(character.type) === -1) {
+          uniqueChars.push(character.type)
+        }
+
+        return uniqueChars
+      }, this.usedCharacters)
+
+      this.usedCharacters = usedCharacters
+
+      this.usedCharacters.forEach(character => {
+        threeAssets.queueAsset('gltf', character, getModelUrl(character))
+      })
+    },
+    loadQueuedAssets () {
+      let loadingManager = new THREE.LoadingManager()
+
+      loadingManager.onStart = () => {
+        this.loading = true
+        this.showLoading = true
+        // console.log('STARTING TO LOAD queued things')
+      }
+
+      loadingManager.onProgress = (item, loaded, total) => {
+        // progressBar.style.width = (loaded / total * 100) + '%'
+        // console.log('loading... queued item...', item, loaded, total)
+      }
+
+      let queuedAssetsLoaded = new Promise((resolve, reject) => {
+        loadingManager.onLoad = () => {
+          this.loading = false
+          setTimeout(() => {
+            this.showLoading = false
+          }, 2000)
+
+          resolve('done')
+        }
+      })
+
+      threeAssets.loadQueuedAssets(loadingManager)
+
+      return queuedAssetsLoaded
+    },
     /**
      * Init scene
      */
@@ -88,8 +168,6 @@ export default {
       this.stats = new Stats()
       this.stats.dom.style.removeProperty('position')
       this.$refs.statsContainer.appendChild(this.stats.dom)
-
-      this.container = this.$refs.sceneContainer
 
       const scene = new THREE.Scene()
       scene.background = this.backgroundColor
@@ -169,17 +247,7 @@ export default {
 
       threeMap.scene.add(ambientLight, mainLight)
     },
-    /**
-     * Generic load model method using the service setup via veux
-     * TODO: does this still need to be / should this still be async?
-     */
-    async loadModelAsync (modelKey, position, rotation, defaultAction) {
-      await threeMap.loadModelObject({ modelKey, position, rotation, defaultAction })
-    },
-    /**
-     * Load Models
-     * TODO: Refactor 90s dad to use loadModelAsync function
-     */
+
     /**
      * Create grid
      */
@@ -325,38 +393,29 @@ export default {
       /** Create Tiles Instanced - Start */
       let count = this.tilesNumber * this.tilesNumber
 
-      // arbitrary constnat at this point
-      let buildingMeshes = {
-        first: {},
-        second: {},
-        third: {},
-        fourth: {},
-        fifth: {}
-      }
-
-      let buildingKeys = Object.keys(buildingMeshes)
       // Create all instanced meshes
-      for (let i = 0; i < buildingKeys.length; i++) {
+      let tiles = {}
+      for (let i = 0; i < this.usedTiles.length; i++) {
         // let key = this.getInstancedMeshKeyByIndex(i)
-        let key = buildingKeys[i]
-        buildingMeshes[key] = {
-          mesh: new THREE.InstancedMesh(threeMap.geometries.tiles[i], threeMap.materials.tiles[i], count),
+        let key = this.usedTiles[i]
+        let tileMesh = createTileMesh(key, count)
+        tiles[key] = {
+          mesh: tileMesh,
           count: 0
         }
-        buildingMeshes[key].mesh.count = 0
-        buildingMeshes[key].mesh.frustumCulled = false
-        buildingMeshes[key].mesh.name = key
-        buildingMeshes[key].mesh.itemType = 'tile'
+        tiles[key].mesh.count = 0
+        tiles[key].mesh.frustumCulled = false
+        tiles[key].mesh.name = key
+        tiles[key].mesh.itemType = 'tile'
       }
 
-      // Set vuex instancedMeshes
-      threeMap.setMeshes(buildingMeshes)
+      // // Set tileMeshes
+      threeMap.setMeshes(tiles)
 
-      // Add all instancedMeshes to the scene
-      for (let i = 0; i < buildingKeys.length; i++) {
-        // let key = this.getInstancedMeshKeyByIndex(i)
-        let key = buildingKeys[i]
-        threeMap.boardGroup.add(buildingMeshes[key].mesh)
+      // Add all instanced tileMeshes to the scene
+      for (let i = 0; i < this.usedTiles.length; i++) {
+        let key = this.usedTiles[i]
+        threeMap.boardGroup.add(threeMap.tileInstancedMeshes[key].mesh)
       }
 
       // Add saved tiles
@@ -494,9 +553,9 @@ export default {
           this.selectTile(name, instanceId)
         } else if (this.editTool === 'activate') {
           // no shift key, activate
-          toggleTileActiveState(name, instanceId, threeMap.instancedMeshes[name].mesh)
+          toggleTileActiveState(name, instanceId, threeMap.tileInstancedMeshes[name].mesh)
         } else if (this.editTool === 'addModel' && this.addModelType !== null) {
-          let positionVec = getTilePosition(name, instanceId, threeMap.instancedMeshes)
+          let positionVec = getTilePosition(name, instanceId, threeMap.tileInstancedMeshes)
           this.addModelByType(this.addModelType, positionVec)
         }
       }
@@ -554,7 +613,7 @@ export default {
       this.$store.dispatch('threeMap/selectTile', { name, instanceId })
 
       // get position of selected tile and assign marker to that position
-      let positionVec = getTilePosition(name, instanceId, threeMap.instancedMeshes)
+      let positionVec = getTilePosition(name, instanceId, threeMap.tileInstancedMeshes)
       const currentY = 0.25
       threeMap.highlighterTargetTile({ x: positionVec.x, y: currentY, z: positionVec.z })
     },
@@ -568,20 +627,22 @@ export default {
       threeMap.highlighterTargetTile(position)
     },
     addTileByType (type, position) {
-      if (threeMap.instancedMeshes.hasOwnProperty(type)) {
+      if (threeMap.tileInstancedMeshes.hasOwnProperty(type)) {
         threeMap.addInstance({ matrix: position.matrix, name: type })
       } else {
         console.error(`Invalid tile type: '${type}'`)
       }
     },
     addModelByType (type, position, rotation, defaultAction = null) {
-      this.loadModelAsync(type, position, rotation, defaultAction)
+      const modelGltf = threeAssets.getLoadedGltf(type)
+      const clonedScene = threeAssets.getClonedGltfScene(type)
+      threeMap.addModelItem(type, clonedScene, modelGltf.animations, defaultAction, position, rotation)
     },
     toggleControlsVisibility () {
       this.showControls = !this.showControls
     },
     getInstancedMeshKeyByIndex (index) {
-      return Object.keys(threeMap.instancedMeshes)[index]
+      return Object.keys(threeMap.tileInstancedMeshes)[index]
     },
     disposeScene () {
       this.stopScene = true
@@ -603,8 +664,21 @@ export default {
     threeMap.clearMap()
   },
   mounted () {
-    // Set everything up
-    this.init()
+    // Set the container reference
+    this.container = this.$refs.sceneContainer
+
+    // Collect all assets that are required and queue them to be loaded
+    this.queueAssetsToLoad()
+
+    // Load all queued assets and return promise that will resolve on completion
+    const assetsPromise = this.loadQueuedAssets()
+
+    // Once all queued assets are loading, initialize the scene
+    assetsPromise.then(result => {
+      this.init()
+    })
+
+    // Initialize all event listeners for the scene
     // TODO: implement these the right way
     // Need to resize on both resize and orientation changes
     window.addEventListener('resize', this.onWindowResize)
@@ -634,6 +708,19 @@ export default {
 </script>
 
 <style lang="scss">
+@keyframes spin {
+  0%   {
+    -webkit-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
 #scene-container {
   position: absolute;
   height: 100%;
@@ -645,5 +732,61 @@ export default {
   position: absolute;
   bottom: 0;
   left: 0;
+}
+
+.loading-screen {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: #ffffff;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0ms 1200ms, opacity 1200ms 0ms;
+
+  &.loading {
+    opacity: 1;
+    visibility: visible;
+    transition: visibility 0ms 0ms, opacity 0ms 0ms;
+  }
+}
+
+.loader {
+  display: block;
+  position: relative;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: #9370db;
+  animation: spin 2s linear infinite;
+}
+
+.loader:before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: #ba55d3;
+  animation: spin 3s linear infinite;
+}
+
+.loader:after {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: #ff00ff;
+  animation: spin 1.5s linear infinite;
 }
 </style>

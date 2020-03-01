@@ -1,12 +1,10 @@
 import * as THREE from 'three'
-import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils'
 
 // Internal dependencies
 import { setPan, deconstructModelStringId } from '@/components/threejs/MapRenderer/helpers'
 import { rotateModel, moveForward, moveBackward } from '@/components/threejs/MapRenderer/heroActions'
 import {
-  getModelUrl, getModelScale, getModelRotation, getModelAnimations,
-  simpleLoadModel,
+  getModelAnimations,
   fadeToAction, fadeOutAction
 } from '@/components/threejs/MapRenderer/modelHelpers'
 
@@ -30,7 +28,7 @@ export let threeMap = {
   // Mesh stuff
   geometries: null,
   materials: null,
-  instancedMeshes: null,
+  tileInstancedMeshes: null,
   controls: null,
   selectionHighlighter: null,
 
@@ -56,7 +54,7 @@ export let threeMap = {
    * Set initialized meshes
    */
   setMeshes (meshes) {
-    this.instancedMeshes = meshes
+    this.tileInstancedMeshes = meshes
   },
   setGeometries (geometries) {
     this.geometries = geometries
@@ -82,9 +80,8 @@ export let threeMap = {
   /**
    * Initialize new model
    */
-  initializeNewModel ({ modelKey, promise }) {
+  initializeNewModelBase (modelKey) {
     this.characterInstances[modelKey] = {
-      base: promise,
       count: 0,
       groups: {}
     }
@@ -151,43 +148,47 @@ export let threeMap = {
    */
   addInstance ({ matrix, name, rotation }) {
     // Set this index's position
-    const count = this.instancedMeshes[name].count
-    this.instancedMeshes[name].mesh.setMatrixAt(count, matrix)
-    this.instancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
-    this.instancedMeshes[name].mesh.userData[count.toString()] = {
+    const count = this.tileInstancedMeshes[name].count
+    this.tileInstancedMeshes[name].mesh.setMatrixAt(count, matrix)
+    this.tileInstancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
+    this.tileInstancedMeshes[name].mesh.userData[count.toString()] = {
       exists: true,
       isActive: false,
       rotation: rotation || 0
     }
 
     // Increment our counter and the instanced mesh counter
-    this.instancedMeshes[name].mesh.count++
-    this.instancedMeshes[name].count++
+    this.tileInstancedMeshes[name].mesh.count++
+    this.tileInstancedMeshes[name].count++
   },
   /**
    * Rotate instance
    */
   rotateInstance ({ name, instanceId }) {
-    this.instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix)
+    this.tileInstancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix)
     matrix.multiplyMatrices(instanceMatrix, rotationMatrix)
-    this.instancedMeshes[name].mesh.setMatrixAt(instanceId, matrix)
-    this.instancedMeshes[name].mesh.userData[instanceId.toString()].rotation = (this.instancedMeshes[name].mesh.userData[instanceId.toString()].rotation + 1) % 4
-    this.instancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
+    this.tileInstancedMeshes[name].mesh.setMatrixAt(instanceId, matrix)
+    this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].rotation = (this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].rotation + 1) % 4
+    this.tileInstancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
   },
   /**
    * Delete instance
    */
   deleteInstance ({ name, instanceId }) {
-    this.instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix)
+    this.tileInstancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix)
     matrix.multiplyMatrices(instanceMatrix, hideMatrix)
-    this.instancedMeshes[name].mesh.setMatrixAt(instanceId, matrix)
-    this.instancedMeshes[name].mesh.userData[instanceId.toString()].exists = false
-    this.instancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
+    this.tileInstancedMeshes[name].mesh.setMatrixAt(instanceId, matrix)
+    this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].exists = false
+    this.tileInstancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
   },
   /**
    * Add model item
    */
-  addModelItem (modelKey, model, animations, defaultAction, position, isNew, rotation = 0) {
+  addModelItem (modelKey, model, animations, defaultAction, position, rotation = 0) {
+    if (!this.characterInstances[modelKey]) {
+      this.initializeNewModelBase(modelKey)
+    }
+
     let count = this.characterInstances[modelKey].count++
 
     // use the current count for index and then increment to increase the total
@@ -212,22 +213,6 @@ export let threeMap = {
       }
 
       this.mixers.push(mixer)
-    }
-
-    // For the first time, we need to normalize it to our world.
-    // This transform remains for future cloned items.
-    if (isNew) {
-      const modelMatrix = new THREE.Matrix4()
-
-      const modelRotation = getModelRotation(modelKey)
-      modelMatrix.makeRotationY(modelRotation)
-
-      const modelScale = getModelScale(modelKey)
-      modelMatrix.scale(modelScale)
-
-      modelMatrix.setPosition(0, 0, 0)
-
-      model.applyMatrix(modelMatrix)
     }
 
     // Do animation stuff too
@@ -417,53 +402,9 @@ export let threeMap = {
     this.controls = null
     this.geometries = null
     this.materials = null
-    this.instancedMeshes = null
+    this.tileInstancedMeshes = null
     this.selectionHighlighter = null
     this.characterInstances = {}
-  },
-
-  //
-  // Loaders
-  //
-  /**
-   * Load a model.
-   *
-   * Note - we are using skeletton utils to clone the scene in both cases, this way, the source
-   * that is cloned for new objects will always exist in its original state.
-   *
-   * TODO: need to handle this properly - If we didn't do this, a new item might be created at the current position of the first model,
-   * possibly mid animation, for example.
-   */
-  loadModelObject ({ modelKey, position, rotation, defaultAction }) {
-    let modelInstances = this.characterInstancesByModelId(modelKey)
-
-    if (modelInstances) {
-      // promise exists, resolve it
-      let promise = modelInstances.base
-      return promise.then(result => {
-        const clonedModel = SkeletonUtils.clone(result.scene)
-        this.addModelItem(modelKey, clonedModel, result.animations, defaultAction, position, false, rotation)
-      }).catch(err => {
-        console.error(err)
-      })
-    } else {
-      // promise doesn't exist, set the promise and also resolve it
-      const modelUrl = getModelUrl(modelKey)
-      if (!modelUrl) {
-        console.error('Model does not exist!')
-      }
-
-      let promise = simpleLoadModel(modelUrl)
-      this.initializeNewModel({ modelKey, promise })
-      // resolve the promise
-      return promise.then(result => {
-        // const clonedModel = SkeletonUtils.clone(result.scene)
-        // TODO: do something here to handle this
-        this.addModelItem(modelKey, result.scene, result.animations, defaultAction, position, true, rotation)
-      }).catch(err => {
-        console.error(err)
-      })
-    }
   }
 }
 
@@ -489,4 +430,4 @@ export function clearRenderer () {
 }
 
 // Uncomment for easier debugging
-// window.threeMap = threeMap
+window.threeMap = threeMap

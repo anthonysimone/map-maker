@@ -1,27 +1,4 @@
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-
 import { models } from './models'
-
-export async function simpleLoadModel (url) {
-  const loader = new GLTFLoader()
-
-  let gltf = await new Promise((resolve, reject) => {
-    loader.load(url, gltf => {
-      resolve(gltf)
-    }, undefined, reject)
-  })
-
-  return gltf
-}
-
-// the loader will report the loading progress to this function
-export const onModelProgress = () => {}
-
-// the loader will send any error messages to this function, and we'll log
-// them to to console
-export const onModelError = errorMessage => {
-  console.log(errorMessage)
-}
 
 export function getModelUrl (key) {
   if (models[key]) {
@@ -36,7 +13,7 @@ export function getModelScale (key) {
     return models[key].normalizationScale
   }
 
-  return null
+  return { x: 1, y: 1, z: 1 }
 }
 
 export function getModelRotation (key) {

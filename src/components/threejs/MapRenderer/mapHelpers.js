@@ -3,19 +3,19 @@ import { getTilePosition, getTileRotation } from './tileActions'
 /**
  * Generate Tiles Json - provide the instanced meshes generate tiles json
  */
-export function generateTilesJson (instancedMeshes) {
-  let instancedMeshNames = Object.keys(instancedMeshes)
+export function generateTilesJson (tileInstancedMeshes) {
+  let instancedMeshNames = Object.keys(tileInstancedMeshes)
   let tiles = []
   instancedMeshNames.forEach(name => {
     // Set mesh name
-    let instanceKeys = Object.keys(instancedMeshes[name].mesh.userData)
+    let instanceKeys = Object.keys(tileInstancedMeshes[name].mesh.userData)
     instanceKeys.forEach(instanceId => {
-      if (instancedMeshes[name].mesh.userData[instanceId.toString()].exists) {
-        const vec = getTilePosition(name, instanceId, instancedMeshes)
+      if (tileInstancedMeshes[name].mesh.userData[instanceId.toString()].exists) {
+        const vec = getTilePosition(name, instanceId, tileInstancedMeshes)
         let tile = {
           type: name,
           position: { x: vec.x, y: vec.y, z: vec.z },
-          rotation: getTileRotation(name, instanceId, instancedMeshes)
+          rotation: getTileRotation(name, instanceId, tileInstancedMeshes)
         }
 
         tiles.push(tile)
