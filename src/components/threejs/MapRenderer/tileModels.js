@@ -6,27 +6,37 @@ export const tileModels = {
   first: {
     name: 'first',
     type: 'basic',
-    url: '/threejs/textures/stone-floor-texture.png'
+    url: '/threejs/textures/stone-floor-texture.png',
+    qLength: 1,
+    sLength: 1
   },
   second: {
     name: 'second',
     type: 'basic',
-    url: '/threejs/textures/wall-texture.png'
+    url: '/threejs/textures/wall-texture.png',
+    qLength: 1,
+    sLength: 1
   },
   third: {
     name: 'third',
     type: 'basic',
-    url: '/threejs/textures/doorway-texture.png'
+    url: '/threejs/textures/doorway-texture.png',
+    qLength: 1,
+    sLength: 1
   },
   fourth: {
     name: 'fourth',
     type: 'basic',
-    url: '/threejs/textures/water-texture.png'
+    url: '/threejs/textures/water-texture.png',
+    qLength: 1,
+    sLength: 1
   },
   fifth: {
     name: 'fifth',
     type: 'basic',
-    url: '/threejs/textures/pit-texture.png'
+    url: '/threejs/textures/pit-texture.png',
+    qLength: 1,
+    sLength: 1
   },
   specialFloor: {
     name: 'specialFloor',
@@ -34,12 +44,23 @@ export const tileModels = {
     url: '/threejs/models/Dungeon_Modules/glb/Floor_Modular.glb',
     meshName: 'Floor_Modular',
     normalizationScale: { x: 50, y: 130, z: 50 },
-    normalizationRotateX: Math.PI / 2
+    normalizationRotateX: Math.PI / 2,
+    qLength: 2,
+    sLength: 2
   }
 }
 
 export function getTileModel (name) {
   return tileModels[name]
+}
+
+export function getTileDetails (name) {
+  const { qLength, sLength } = getTileModel(name)
+  return {
+    name,
+    qLength,
+    sLength
+  }
 }
 
 export function getTileType (name) {

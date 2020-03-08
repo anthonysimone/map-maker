@@ -14,11 +14,15 @@ let instanceMatrix = new THREE.Matrix4()
 let matrix = new THREE.Matrix4()
 let rotationMatrix = new THREE.Matrix4().makeRotationY(Math.PI / 2)
 let hideMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
+let vector3 = new THREE.Vector3()
 
 /**
  * Our global three.js objects and properties.
  */
 export let threeMap = {
+  // Classes
+  boardClass: null,
+
   // Global stuff
   scene: null,
   renderer: null,
@@ -33,6 +37,13 @@ export let threeMap = {
   tileInstancedMeshes: null,
   controls: null,
   selectionHighlighter: null,
+
+  // Helpers
+  mouse: new THREE.Vector2(),
+  raycaster: new THREE.Raycaster(),
+
+  // Interactions
+  currentRolloverCell: null,
 
   // Model stuff
   characterInstances: {},
@@ -225,6 +236,10 @@ export let threeMap = {
     // Increment our counter and the instanced mesh counter
     this.tileInstancedMeshes[name].mesh.count++
     this.tileInstancedMeshes[name].count++
+
+    // Set the tile as occupied in the board class
+    vector3.setFromMatrixPosition(matrix)
+    this.boardClass.setBoardTile(vector3.x - 0.5, vector3.z - 0.5)
   },
   /**
    * Rotate instance
@@ -245,6 +260,10 @@ export let threeMap = {
     this.tileInstancedMeshes[name].mesh.setMatrixAt(instanceId, matrix)
     this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].exists = false
     this.tileInstancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
+
+    // Unset the tile as occupied in the board class
+    vector3.setFromMatrixPosition(matrix)
+    this.boardClass.unsetBoardTile(matrix.x - 0.5, matrix.z - 0.5)
   },
   /**
    * Add model item

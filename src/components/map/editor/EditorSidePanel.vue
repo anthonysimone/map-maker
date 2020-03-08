@@ -6,27 +6,27 @@
       <label>Creation Tile Type</label>
       <div class="list-radios">
         <label class="radio-label">
-          <input type="radio" value="first" checked name="creationTileType" v-model="creationTileType">
+          <input type="radio" value="first" checked name="creationTileName" v-model="creationTileName">
           <span>Floor</span>
         </label>
         <label class="radio-label">
-          <input type="radio" value="second" name="creationTileType" v-model="creationTileType">
+          <input type="radio" value="second" name="creationTileName" v-model="creationTileName">
           <span>Wall</span>
         </label>
         <label class="radio-label">
-          <input type="radio" value="third" name="creationTileType" v-model="creationTileType">
+          <input type="radio" value="third" name="creationTileName" v-model="creationTileName">
           <span>Door</span>
         </label>
         <label class="radio-label">
-          <input type="radio" value="fourth" name="creationTileType" v-model="creationTileType">
+          <input type="radio" value="fourth" name="creationTileName" v-model="creationTileName">
           <span>Water</span>
         </label>
         <label class="radio-label">
-          <input type="radio" value="fifth" name="creationTileType" v-model="creationTileType">
+          <input type="radio" value="fifth" name="creationTileName" v-model="creationTileName">
           <span>Pit</span>
         </label>
         <label class="radio-label">
-          <input type="radio" value="specialFloor" name="creationTileType" v-model="creationTileType">
+          <input type="radio" value="specialFloor" name="creationTileName" v-model="creationTileName">
           <span>Cool Floor</span>
         </label>
       </div>
@@ -147,6 +147,7 @@ import { threeMap } from '@/helpers/services/threeMapService'
 
 import { deconstructTileStringId, deconstructModelStringId } from '@/components/threejs/MapRenderer/helpers'
 import { getModelAnimations } from '@/components/threejs/MapRenderer/modelHelpers'
+import { getTileDetails } from '@/components/threejs/MapRenderer/tileModels'
 
 export default {
   name: 'editor-side-panel',
@@ -210,12 +211,13 @@ export default {
     noSelection () {
       return !this.selectedTile && !this.selectedModel
     },
-    creationTileType: {
+    creationTileName: {
       get () {
-        return this.$store.state.threeMap.creationTileType
+        return this.$store.state.threeMap.creationTile && this.$store.state.threeMap.creationTile.name
       },
       set (tileType) {
-        this.$store.dispatch('threeMap/setCreationTileType', tileType)
+        const tileDetails = getTileDetails(tileType)
+        this.$store.dispatch('threeMap/setCreationTile', tileDetails)
       }
     },
     addModelType: {

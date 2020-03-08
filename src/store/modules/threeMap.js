@@ -16,7 +16,7 @@ const state = {
   // Tools
   editMode: 'normal',
   editTool: 'select',
-  creationTileType: 'first',
+  creationTile: null,
   addModelType: null
 }
 
@@ -31,7 +31,7 @@ const getters = {
   // Tools
   editMode: state => state.editMode,
   editTool: state => state.editTool,
-  creationTileType: state => state.creationTileType,
+  creationTile: state => state.creationTile,
   addModelType: state => state.addModelType
 }
 
@@ -41,7 +41,6 @@ const mutations = {
     state.selectedTile = null
     state.editMode = 'normal' // keep
     state.editTool = 'activate' // keep
-    state.creationTileType = 'first' // keep
   },
   initHammerManager: (state, hammerManager) => {
     state.hammerManager = hammerManager
@@ -81,8 +80,8 @@ const mutations = {
   setEditTool: (state, editTool) => {
     state.editTool = editTool
   },
-  setCreationTileType: (state, tileType) => {
-    state.creationTileType = tileType
+  setCreationTile: (state, tileDetails) => {
+    state.creationTile = tileDetails
   },
   setAddModelType: (state, modelType) => {
     state.addModelType = modelType
@@ -124,8 +123,8 @@ const actions = {
   setEditTool: ({ commit }, editTool) => {
     commit('setEditTool', editTool)
   },
-  setCreationTileType: ({ commit }, tileType) => {
-    commit('setCreationTileType', tileType)
+  setCreationTile: ({ commit }, tileDetails) => {
+    commit('setCreationTile', tileDetails)
   },
   setAddModelType: ({ commit }, modelType) => {
     commit('setAddModelType', modelType)

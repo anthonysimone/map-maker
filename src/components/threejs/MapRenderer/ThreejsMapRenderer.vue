@@ -20,10 +20,12 @@ import { loadTileTextures } from './loadTextures'
 import {
   toggleTileActiveState,
   getTilePosition,
-  hideRollOver
+  hideRollOver,
+  setRolloverIsValid
 } from './tileActions'
 import { getModelUrl } from './modelHelpers'
 import { createTileMesh, getTileModel } from './tileModels'
+import { Board } from './classes/Board'
 
 import { threeMap } from '@/helpers/services/threeMapService'
 import { threeAssets } from '@/helpers/services/threeAssetService'
@@ -62,11 +64,7 @@ export default {
       rollOverMaterial: null,
       rollOverMesh: null,
       objects: [],
-      raycaster: new THREE.Raycaster(),
-      mouse: new THREE.Vector2(),
       transform: new THREE.Object3D(),
-      rolloverOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
-      initialTileOffsetVector: new THREE.Vector3(0.5, 0.125, 0.5),
       matrix: new THREE.Matrix4(),
       instanceMatrix: new THREE.Matrix4(),
 
@@ -80,7 +78,7 @@ export default {
       'editTool',
       'editMode',
       'selectedTile',
-      'creationTileType',
+      'creationTile',
       'addModelType'
     ]),
     boardSize () {
@@ -217,7 +215,7 @@ export default {
 
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
 
-      camera.position.set(0, 10, -10)
+      camera.position.set(0, 10, 10)
 
       return camera
     },
@@ -268,7 +266,7 @@ export default {
       // add roller helpers
       this.rollOverGeo = new THREE.BoxBufferGeometry(1, 0.25, 1)
       this.rollOverMaterial = new THREE.MeshBasicMaterial({
-        color: 0xff0000,
+        color: 0x000000,
         opacity: 0.5,
         transparent: true
       })
@@ -375,6 +373,9 @@ export default {
      * Create meshes
      */
     createMeshes () {
+      // Initializie board class
+      threeMap.boardClass = new Board(this.tilesNumber, this.tilesNumber)
+
       // create the train group that will hold all train pieces
       threeMap.setBoardGroup(new THREE.Group())
 
@@ -528,13 +529,13 @@ export default {
     onMouseClick (event) {
       // calculate mouse position in normalized device coordinates
       // (-1 to +1) for both components
-      setMouse(this.mouse, event, this.container)
+      setMouse(threeMap.mouse, event, this.container)
 
       // update the picking ray with the camera and mouse position
-      this.raycaster.setFromCamera(this.mouse, threeMap.camera)
+      threeMap.raycaster.setFromCamera(threeMap.mouse, threeMap.camera)
 
       // calculate objects intersecting the picking ray
-      let intersects = this.raycaster.intersectObjects(threeMap.boardGroup.children, true)
+      let intersects = threeMap.raycaster.intersectObjects(threeMap.boardGroup.children, true)
 
       const hasHitTile = intersects.length && intersects[0].object.itemType === 'tile'
       const hasHitModel = intersects.length && intersects[0].object.userData.modelGroupName
@@ -567,17 +568,18 @@ export default {
       }
 
       // "unoccupied" board spaces intersections
-      if (this.editTool === 'create' && this.creationTileType !== null && !hasHitTile) {
+      if (this.editTool === 'create' && this.creationTile !== null && !hasHitTile) {
         if (intersects.length > 0) {
           let intersect = intersects[0]
 
-          intersect.point.floor()
-          intersect.point.y = 0
-          intersect.point.add(this.initialTileOffsetVector)
-          this.transform.position.copy(intersect.point)
+          // Get normalized position for the mouse point
+          const normalizedPoint = threeMap.boardClass.pointToNormalizedOffset(intersect.point)
+
+          // Set position for new tile
+          this.transform.position.copy(normalizedPoint)
           this.transform.updateMatrix()
 
-          this.addTileByType(this.creationTileType, this.transform)
+          this.addTileByType(this.creationTile.name, this.transform)
           hideRollOver(this.rollOverMesh)
         }
       }
@@ -587,24 +589,28 @@ export default {
      */
     onDocumentMouseMove (event) {
       event.preventDefault()
-      if (event.target.id !== 'map-canvas' || this.editTool !== 'create') {
+      if (event.target.id !== 'map-canvas' || this.editTool !== 'create' || this.creationTile === null) {
         return
       }
 
-      setMouse(this.mouse, event, this.container)
-      this.raycaster.setFromCamera(this.mouse, threeMap.camera)
+      setMouse(threeMap.mouse, event, this.container)
+      threeMap.raycaster.setFromCamera(threeMap.mouse, threeMap.camera)
 
-      // Check if we hit a tile, if so we don't want to hide the mesh
-      let boardIntersects = this.raycaster.intersectObjects(threeMap.boardGroup.children, false)
+      // Get the cell we hit, and check the status.
+      let boardIntersect = threeMap.raycaster.intersectObject(threeMap.boardGroup.getObjectByName('board-grid'))
+      const cell = boardIntersect.length === 1 ? threeMap.boardClass.getCellByPoint(boardIntersect[0].point) : null
+      const changed = threeMap.currentRolloverCell !== cell
 
-      const hasHitGrid = boardIntersects.length && boardIntersects[0].object.name === 'board-grid'
-      if (hasHitGrid) {
-        const intersect = boardIntersects[0]
-        this.rollOverMesh.position.copy(intersect.point)
-        this.rollOverMesh.position.floor()
-        this.rollOverMesh.position.y = 0
-        this.rollOverMesh.position.add(this.rolloverOffsetVector)
-      } else {
+      if (cell && !cell.hasTile && changed) {
+        threeMap.currentRolloverCell = cell
+        const offsetPoint = threeMap.boardClass.pointToNormalizedOffset(boardIntersect[0].point)
+        this.rollOverMesh.position.copy(offsetPoint)
+
+        let tileSize = { qLength: this.creationTile.qLength, sLength: this.creationTile.sLength }
+        threeMap.boardClass.canPlaceTile(cell.q, cell.s, tileSize)
+        setRolloverIsValid(this.rollOverMesh, threeMap.boardClass.canPlaceTile(cell.q, cell.s, tileSize))
+      } else if (changed) {
+        threeMap.currentRolloverCell = cell
         hideRollOver(this.rollOverMesh)
       }
     },

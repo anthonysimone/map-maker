@@ -98,6 +98,11 @@ export function hideRollOver (rollOverMesh) {
   rollOverMesh.position.set(0, -2, 0)
 }
 
+export function setRolloverIsValid (rollOverMesh, isValid) {
+  rollOverMesh.material.color.r = isValid ? 0 : 1
+  rollOverMesh.material.color.b = isValid ? 1 : 0
+}
+
 // /**
 //  * Rotate selected tile
 //  */
