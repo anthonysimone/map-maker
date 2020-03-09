@@ -134,7 +134,7 @@
           <option value="starrySky" :selected="selectedSky === 'starrySky'">Starry Sky</option>
         </select>
         <label class="button-group-label">Toggle grid</label>
-        <button @click="toggleGrid">{{ showGrid ? 'Show' : 'Hide' }} grid</button>
+        <button @click="toggleGrid">{{ showGrid ? 'Hide' : 'Show' }} grid</button>
       </div>
     </section>
 

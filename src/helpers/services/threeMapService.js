@@ -131,7 +131,7 @@ export let threeMap = {
     const boardGrid = this.scene.getObjectByName('board-grid')
     const gridHelper = this.scene.getObjectByName('board-grid-helper')
 
-    boardGrid.visible = showGrid
+    boardGrid.material.visible = showGrid
     gridHelper.visible = showGrid
   },
   /**
