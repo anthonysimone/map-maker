@@ -20,7 +20,8 @@ import { loadTileTextures } from './loadTextures'
 import {
   toggleTileActiveState,
   getTilePosition,
-  hideRollOver,
+  hideRollover,
+  showRollover,
   setRolloverIsValid
 } from './tileActions'
 import { getModelUrl } from './modelHelpers'
@@ -60,9 +61,9 @@ export default {
 
       // three helper ojects
       backgroundColor: new THREE.Color(0x8fbcd4),
-      rollOverGeo: null,
-      rollOverMaterial: null,
-      rollOverMesh: null,
+      rolloverGeo: null,
+      rolloverMaterial: null,
+      rolloverMesh: null,
       objects: [],
       transform: new THREE.Object3D(),
       matrix: new THREE.Matrix4(),
@@ -264,15 +265,15 @@ export default {
       const gridGroup = new THREE.Group()
 
       // add roller helpers
-      this.rollOverGeo = new THREE.BoxBufferGeometry(1, 0.25, 1)
-      this.rollOverMaterial = new THREE.MeshBasicMaterial({
+      this.rolloverGeo = new THREE.BoxBufferGeometry(1, 0.25, 1)
+      this.rolloverMaterial = new THREE.MeshBasicMaterial({
         color: 0x000000,
         opacity: 0.5,
         transparent: true
       })
-      this.rollOverMesh = new THREE.Mesh(this.rollOverGeo, this.rollOverMaterial)
-      hideRollOver(this.rollOverMesh)
-      gridGroup.add(this.rollOverMesh)
+      this.rolloverMesh = new THREE.Mesh(this.rolloverGeo, this.rolloverMaterial)
+      hideRollover(this.rolloverMesh)
+      gridGroup.add(this.rolloverMesh)
 
       // add grid
       let gridHelper = new THREE.GridHelper(this.boardSize, this.boardSize, 0x444444, 0x666666)
@@ -580,7 +581,7 @@ export default {
           this.transform.updateMatrix()
 
           this.addTileByType(this.creationTile.name, this.transform)
-          hideRollOver(this.rollOverMesh)
+          hideRollover(this.rolloverMesh)
         }
       }
     },
@@ -604,14 +605,14 @@ export default {
       if (cell && !cell.hasTile && changed) {
         threeMap.currentRolloverCell = cell
         const offsetPoint = threeMap.boardClass.pointToNormalizedOffset(boardIntersect[0].point)
-        this.rollOverMesh.position.copy(offsetPoint)
+        showRollover(this.rolloverMesh, offsetPoint)
 
         let tileSize = { qLength: this.creationTile.qLength, sLength: this.creationTile.sLength }
         threeMap.boardClass.canPlaceTile(cell.q, cell.s, tileSize)
-        setRolloverIsValid(this.rollOverMesh, threeMap.boardClass.canPlaceTile(cell.q, cell.s, tileSize))
+        setRolloverIsValid(this.rolloverMesh, threeMap.boardClass.canPlaceTile(cell.q, cell.s, tileSize))
       } else if (changed) {
         threeMap.currentRolloverCell = cell
-        hideRollOver(this.rollOverMesh)
+        hideRollover(this.rolloverMesh)
       }
     },
     /**

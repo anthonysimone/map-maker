@@ -94,13 +94,19 @@ export function getSelectedTilePosition (selectedTile, instancedMeshes) {
   return getTilePosition(name, instanceId, instancedMeshes)
 }
 
-export function hideRollOver (rollOverMesh) {
-  rollOverMesh.position.set(0, -2, 0)
+export function hideRollover (rolloverMesh) {
+  rolloverMesh.position.set(0, -2, 0)
+  rolloverMesh.visible = false
 }
 
-export function setRolloverIsValid (rollOverMesh, isValid) {
-  rollOverMesh.material.color.r = isValid ? 0 : 1
-  rollOverMesh.material.color.b = isValid ? 1 : 0
+export function showRollover (rolloverMesh, positionPoint) {
+  rolloverMesh.position.copy(positionPoint)
+  rolloverMesh.visible = true
+}
+
+export function setRolloverIsValid (rolloverMesh, isValid) {
+  rolloverMesh.material.color.r = isValid ? 0 : 1
+  rolloverMesh.material.color.b = isValid ? 1 : 0
 }
 
 // /**
