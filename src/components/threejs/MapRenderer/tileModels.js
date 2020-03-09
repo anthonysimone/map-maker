@@ -45,8 +45,8 @@ export const tileModels = {
     meshName: 'Floor_Modular',
     normalizationScale: { x: 50, y: 130, z: 50 },
     normalizationRotateX: Math.PI / 2,
-    qLength: 2,
-    sLength: 2
+    qLength: 1,
+    sLength: 1
   }
 }
 
