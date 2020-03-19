@@ -6,15 +6,17 @@ import { setPan, deconstructModelStringId } from '@/components/threejs/MapRender
 import { rotateModel, moveForward, moveBackward } from '@/components/threejs/MapRenderer/heroActions'
 import {
   getModelAnimations,
-  fadeToAction, fadeOutAction
+  getModelSize,
+  fadeToAction,
+  fadeOutAction
 } from '@/components/threejs/MapRenderer/modelHelpers'
+import { getTilePosition, getTileRotation } from '@/components/threejs/MapRenderer/tileActions'
 
 // Helper objects
 let instanceMatrix = new THREE.Matrix4()
 let matrix = new THREE.Matrix4()
 let rotationMatrix = new THREE.Matrix4().makeRotationY(Math.PI / 2)
 let hideMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
-let vector3 = new THREE.Vector3()
 
 /**
  * Our global three.js objects and properties.
@@ -48,42 +50,54 @@ export let threeMap = {
   // Model stuff
   characterInstances: {},
 
-  //
-  // Setters
-  //
+  /*************************
+   *
+   *
+   * Setters
+   *
+   *
+   ************************/
   /**
    * Set initialized scene
    */
   setScene (scene) {
     this.scene = scene
   },
+
   /**
    * Set initialized controls
    */
   setControls (controls) {
     this.controls = controls
   },
+
   /**
    * Set initialized meshes
    */
   setMeshes (meshes) {
     this.tileInstancedMeshes = meshes
   },
+
   setGeometries (geometries) {
     this.geometries = geometries
   },
+
   setMaterials (materials) {
     this.materials = materials
   },
+
   setRenderer (renderer) {
     this.renderer = renderer
   },
+
   setCamera (camera) {
     this.camera = camera
   },
+
   setBoardGroup (boardGroup) {
     this.boardGroup = boardGroup
   },
+
   setSkydome (domeType) {
     if (this.skydome) {
       this.scene.remove(this.skydome)
@@ -97,6 +111,7 @@ export let threeMap = {
       this.scene.add(dome)
     }
   },
+
   createStarrySkydome (domeType) {
     /* Starry SkyDome ShaderMaterial
       *
@@ -127,6 +142,7 @@ export let threeMap = {
 
     return skyDome
   },
+
   toggleGridDisplay (showGrid) {
     const boardGrid = this.scene.getObjectByName('board-grid')
     const gridHelper = this.scene.getObjectByName('board-grid-helper')
@@ -134,31 +150,40 @@ export let threeMap = {
     boardGrid.material.visible = showGrid
     gridHelper.visible = showGrid
   },
+
   /**
    * Set selecton highlighter
    */
   setSelectionHighlighter (selectionHighlighter) {
     this.selectionHighlighter = selectionHighlighter
   },
+
   /**
    * Initialize new model
    */
   initializeNewModelBase (modelKey) {
+    const size = getModelSize(modelKey)
     this.characterInstances[modelKey] = {
       count: 0,
+      size,
       groups: {}
     }
   },
 
-  //
-  // Getters
-  //
+  /*************************
+   *
+   *
+   * Getters
+   *
+   *
+   ************************/
   /**
    * Get character instances by model id
    */
   characterInstancesByModelId (modelId) {
     return this.characterInstances[modelId]
   },
+
   /**
    * Get character instances by model id
    */
@@ -168,6 +193,7 @@ export let threeMap = {
     }
     return null
   },
+
   /**
    * Get model actions
    */
@@ -179,6 +205,7 @@ export let threeMap = {
 
     return null
   },
+
   /**
    * Get the current action the model is using as state.
    */
@@ -190,6 +217,7 @@ export let threeMap = {
 
     return 'none'
   },
+
   /**
    * Get the mixer for a given model.
    */
@@ -197,15 +225,21 @@ export let threeMap = {
     return this.getCharacterGroup(modelType, instanceNumber).mixer
   },
 
-  //
-  // Methods
-  //
+  /*************************
+   *
+   *
+   * Methods
+   *
+   *
+   ************************/
+
   /**
    * Set controls pan
    */
   setControlsPan (enable) {
     setPan(this.controls, enable)
   },
+
   /**
    * Restrict panning for map
    */
@@ -219,10 +253,11 @@ export let threeMap = {
       this.camera.position.sub(_v)
     })
   },
+
   /**
    * Add instance
    */
-  addInstance ({ matrix, name, rotation }) {
+  addInstance ({ matrix, name, rotation }, coords) {
     // Set this index's position
     const count = this.tileInstancedMeshes[name].count
     this.tileInstancedMeshes[name].mesh.setMatrixAt(count, matrix)
@@ -238,9 +273,10 @@ export let threeMap = {
     this.tileInstancedMeshes[name].count++
 
     // Set the tile as occupied in the board class
-    vector3.setFromMatrixPosition(matrix)
-    this.boardClass.setBoardTile(vector3.x - 0.5, vector3.z - 0.5)
+    const size = this.tileInstancedMeshes[name].size
+    this.boardClass.setBoardTile(coords.q, coords.s, size)
   },
+
   /**
    * Rotate instance
    */
@@ -251,10 +287,11 @@ export let threeMap = {
     this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].rotation = (this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].rotation + 1) % 4
     this.tileInstancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
   },
+
   /**
    * Delete instance
    */
-  deleteInstance ({ name, instanceId }) {
+  deleteInstance ({ name, instanceId }, coords) {
     this.tileInstancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix)
     matrix.multiplyMatrices(instanceMatrix, hideMatrix)
     this.tileInstancedMeshes[name].mesh.setMatrixAt(instanceId, matrix)
@@ -262,13 +299,14 @@ export let threeMap = {
     this.tileInstancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
 
     // Unset the tile as occupied in the board class
-    vector3.setFromMatrixPosition(matrix)
-    this.boardClass.unsetBoardTile(matrix.x - 0.5, matrix.z - 0.5)
+    const size = this.tileInstancedMeshes[name].size
+    this.boardClass.unsetBoardTile(coords.q, coords.s, size)
   },
+
   /**
    * Add model item
    */
-  addModelItem (modelKey, model, animations, defaultAction, position, rotation = 0) {
+  addModelItem (modelKey, model, animations, defaultAction, coords, rotation = 0) {
     if (!this.characterInstances[modelKey]) {
       this.initializeNewModelBase(modelKey)
     }
@@ -305,7 +343,10 @@ export let threeMap = {
     const group = new THREE.Group()
     const name = `${modelKey}-${count}`
     group.name = name
-    group.position.set(position.x, 0.25, position.z)
+
+    const size = getModelSize(modelKey)
+    const charPos = this.boardClass.getCharacterPositionFromBoardCoords(coords.q, coords.s, size)
+    group.position.set(charPos.x, 0.25, charPos.z)
 
     group.userData.rotation = rotation
     if (rotation) {
@@ -337,6 +378,7 @@ export let threeMap = {
       actions
     }
   },
+
   /**
    * Rotate model
    */
@@ -348,6 +390,7 @@ export let threeMap = {
       characterGroup.group.userData.rotation = (characterGroup.group.userData.rotation + 1) % 4
     }
   },
+
   /**
    * Move model forward
    */
@@ -358,6 +401,7 @@ export let threeMap = {
       moveForward(characterGroup.group)
     }
   },
+
   /**
    * Move model backward
    */
@@ -368,6 +412,7 @@ export let threeMap = {
       moveBackward(characterGroup.group)
     }
   },
+
   /**
    * Set model action
    */
@@ -386,6 +431,7 @@ export let threeMap = {
 
     group.userData.currentAction = action
   },
+
   /**
    * Set model emote.
    *
@@ -414,6 +460,7 @@ export let threeMap = {
       }
     }
   },
+
   /**
    * Delete model
    */
@@ -423,12 +470,14 @@ export let threeMap = {
     this.boardGroup.remove(modelGroup)
     this.disposeObject(modelGroup)
   },
+
   /**
    * Get object by name
    */
   getObjectByName (name) {
     return this.scene.getObjectByName(name)
   },
+
   /**
    * Set a tile as being highlighted
    */
@@ -436,6 +485,55 @@ export let threeMap = {
     this.selectionHighlighter.position.set(pos.x, pos.y, pos.z)
     this.selectionHighlighter.visible = true
   },
+
+  generateTilesJson () {
+    let instancedMeshNames = Object.keys(this.tileInstancedMeshes)
+    let tiles = []
+    instancedMeshNames.forEach(name => {
+      // Set mesh name
+      let instanceKeys = Object.keys(this.tileInstancedMeshes[name].mesh.userData)
+      instanceKeys.forEach(instanceId => {
+        if (this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].exists) {
+          const vec = getTilePosition(name, instanceId, this.tileInstancedMeshes)
+          const coords = this.boardClass.getAnchorCoordsFromTilePosition(vec, this.tileInstancedMeshes[name].size)
+
+          let tile = {
+            type: name,
+            coords,
+            rotation: getTileRotation(name, instanceId, this.tileInstancedMeshes)
+          }
+
+          tiles.push(tile)
+        }
+      })
+    })
+
+    return tiles
+  },
+
+  generateCharactersJson () {
+    let modelTypes = Object.keys(this.characterInstances)
+    let characters = []
+    modelTypes.forEach(type => {
+      let instanceKeys = Object.keys(this.characterInstances[type].groups)
+      instanceKeys.forEach(instanceKey => {
+        const characterGroup = this.characterInstances[type].groups[instanceKey].group
+        const vec = characterGroup.position
+        const coords = this.boardClass.getAnchorCoordsFromCharacterPosition(vec, this.characterInstances[type].size)
+        const instance = {
+          type,
+          coords,
+          rotation: characterGroup.userData.rotation,
+          defaultAction: characterGroup.userData.currentAction
+        }
+
+        characters.push(instance)
+      })
+    })
+
+    return characters
+  },
+
   /**
    * Dispose object
    */
@@ -453,6 +551,7 @@ export let threeMap = {
       }
     })
   },
+
   /**
    * Dispose scene
    */
@@ -461,6 +560,7 @@ export let threeMap = {
     this.disposeObject(this.scene)
     this.scene = null
   },
+
   /**
    * Clean material
    */
@@ -475,6 +575,7 @@ export let threeMap = {
       }
     }
   },
+
   /**
    * Destroy - set properties back to initial values
    */

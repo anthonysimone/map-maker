@@ -29,6 +29,10 @@
           <input type="radio" value="specialFloor" name="creationTileName" v-model="creationTileName">
           <span>Cool Floor</span>
         </label>
+        <label class="radio-label">
+          <input type="radio" value="wallWithColumnMerged" name="creationTileName" v-model="creationTileName">
+          <span>Wall Merged</span>
+        </label>
       </div>
     </div>
 

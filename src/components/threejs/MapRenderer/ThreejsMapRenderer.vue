@@ -25,7 +25,7 @@ import {
   setRolloverIsValid
 } from './tileActions'
 import { getModelUrl } from './modelHelpers'
-import { createTileMesh, getTileModel } from './tileModels'
+import { createTileMesh, getTileModel, getTileDetails } from './tileModels'
 import { Board } from './classes/Board'
 
 import { threeMap } from '@/helpers/services/threeMapService'
@@ -70,7 +70,7 @@ export default {
       instanceMatrix: new THREE.Matrix4(),
 
       // default values
-      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor'],
+      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor', 'wallWithColumnMerged'],
       usedCharacters: ['robot', 'slime', 'skeleton', 'goblin', 'bat']
     }
   },
@@ -136,7 +136,6 @@ export default {
       loadingManager.onStart = () => {
         this.loading = true
         this.showLoading = true
-        // console.log('STARTING TO LOAD queued things')
       }
 
       loadingManager.onProgress = (item, loaded, total) => {
@@ -406,10 +405,12 @@ export default {
       for (let i = 0; i < this.usedTiles.length; i++) {
         // let key = this.getInstancedMeshKeyByIndex(i)
         let key = this.usedTiles[i]
+        let { size } = getTileDetails(key)
         let tileMesh = createTileMesh(key, count)
         tiles[key] = {
           mesh: tileMesh,
-          count: 0
+          count: 0,
+          size
         }
         tiles[key].mesh.count = 0
         tiles[key].mesh.frustumCulled = false
@@ -417,7 +418,7 @@ export default {
         tiles[key].mesh.itemType = 'tile'
       }
 
-      // // Set tileMeshes
+      // Set tileMeshes
       threeMap.setMeshes(tiles)
 
       // Add all instanced tileMeshes to the scene
@@ -429,22 +430,20 @@ export default {
       // Add saved tiles
       if (this.map.threejsTiles) {
         this.map.threejsTiles.forEach(tile => {
-          this.instanceMatrix.makeTranslation(tile.position.x, tile.position.y, tile.position.z)
+          const tilePos = threeMap.boardClass.getTilePositionFromBoardCoords(tile.coords.q, tile.coords.s, threeMap.tileInstancedMeshes[tile.type].size)
+
+          this.instanceMatrix.makeTranslation(tilePos.x, 0.125, tilePos.z)
           this.matrix.makeRotationY(tile.rotation * Math.PI / 2)
           this.instanceMatrix.multiply(this.matrix)
 
-          this.transform.position.set(tile.position.x, tile.position.y, tile.position.z)
-          // this.transform.rotation.set()
-          this.transform.rotateY(tile.rotation * Math.PI / 2)
-          this.transform.updateMatrix()
-          threeMap.addInstance({ matrix: this.instanceMatrix, name: tile.type, rotation: tile.rotation })
+          threeMap.addInstance({ matrix: this.instanceMatrix, name: tile.type, rotation: tile.rotation }, tile.coords)
         })
       }
 
       // Add saved characters
       if (this.map.threejsCharacters) {
         this.map.threejsCharacters.forEach(character => {
-          this.addModelByType(character.type, character.position, character.rotation, character.defaultAction)
+          this.addModelByType(character.type, character.coords, character.rotation, character.defaultAction)
         })
       }
 
@@ -556,15 +555,17 @@ export default {
         const instanceId = intersects[0].instanceId
         if (event.shiftKey || this.editTool === 'delete') {
           // When shift key is pressed or in delete mode, "delete"
-          threeMap.deleteInstance({ name, instanceId })
+          const coords = threeMap.boardClass.pointToCoords(intersects[0].point)
+          const anchorCell = threeMap.boardClass.getAnchorCell(coords.q, coords.s)
+          threeMap.deleteInstance({ name, instanceId }, { q: anchorCell.q, s: anchorCell.s })
         } else if (this.editTool === 'select') {
           this.selectTile(name, instanceId)
         } else if (this.editTool === 'activate') {
           // no shift key, activate
           toggleTileActiveState(name, instanceId, threeMap.tileInstancedMeshes[name].mesh)
         } else if (this.editTool === 'addModel' && this.addModelType !== null) {
-          let positionVec = getTilePosition(name, instanceId, threeMap.tileInstancedMeshes)
-          this.addModelByType(this.addModelType, positionVec)
+          const coords = threeMap.boardClass.pointToCoords(intersects[0].point)
+          this.addModelByType(this.addModelType, coords)
         }
       }
 
@@ -574,13 +575,19 @@ export default {
           let intersect = intersects[0]
 
           // Get normalized position for the mouse point
-          const normalizedPoint = threeMap.boardClass.pointToNormalizedOffset(intersect.point)
+          // const normalizedPoint = threeMap.boardClass.pointToNormalizedOffset(intersect.point)
+
+          const size = threeMap.tileInstancedMeshes[this.creationTile.name].size
+          const coords = threeMap.boardClass.pointToCoords(intersect.point)
+          const position = threeMap.boardClass.getTilePositionFromBoardCoords(coords.q, coords.s, size)
 
           // Set position for new tile
-          this.transform.position.copy(normalizedPoint)
+          this.transform.position.x = position.x
+          this.transform.position.y = 0.125
+          this.transform.position.z = position.z
           this.transform.updateMatrix()
 
-          this.addTileByType(this.creationTile.name, this.transform)
+          this.addTileByType(this.creationTile.name, this.transform, coords)
           hideRollover(this.rolloverMesh)
         }
       }
@@ -607,7 +614,7 @@ export default {
         const offsetPoint = threeMap.boardClass.pointToNormalizedOffset(boardIntersect[0].point)
         showRollover(this.rolloverMesh, offsetPoint)
 
-        let tileSize = { qLength: this.creationTile.qLength, sLength: this.creationTile.sLength }
+        let tileSize = this.creationTile.size
         threeMap.boardClass.canPlaceTile(cell.q, cell.s, tileSize)
         setRolloverIsValid(this.rolloverMesh, threeMap.boardClass.canPlaceTile(cell.q, cell.s, tileSize))
       } else if (changed) {
@@ -639,17 +646,17 @@ export default {
       position.y = boundingBox.max.y
       threeMap.highlighterTargetTile(position)
     },
-    addTileByType (type, position) {
+    addTileByType (type, position, coords) {
       if (threeMap.tileInstancedMeshes.hasOwnProperty(type)) {
-        threeMap.addInstance({ matrix: position.matrix, name: type })
+        threeMap.addInstance({ matrix: position.matrix, name: type }, coords)
       } else {
         console.error(`Invalid tile type: '${type}'`)
       }
     },
-    addModelByType (type, position, rotation, defaultAction = null) {
+    addModelByType (type, coords, rotation, defaultAction = null) {
       const modelGltf = threeAssets.getLoadedGltf(type)
       const clonedScene = threeAssets.getClonedGltfScene(type)
-      threeMap.addModelItem(type, clonedScene, modelGltf.animations, defaultAction, position, rotation)
+      threeMap.addModelItem(type, clonedScene, modelGltf.animations, defaultAction, coords, rotation)
     },
     toggleControlsVisibility () {
       this.showControls = !this.showControls

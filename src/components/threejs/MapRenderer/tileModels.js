@@ -7,46 +7,48 @@ export const tileModels = {
     name: 'first',
     type: 'basic',
     url: '/threejs/textures/stone-floor-texture.png',
-    qLength: 1,
-    sLength: 1
+    size: { qLength: 1, sLength: 1 }
   },
   second: {
     name: 'second',
     type: 'basic',
     url: '/threejs/textures/wall-texture.png',
-    qLength: 1,
-    sLength: 1
+    size: { qLength: 1, sLength: 1 }
   },
   third: {
     name: 'third',
     type: 'basic',
     url: '/threejs/textures/doorway-texture.png',
-    qLength: 1,
-    sLength: 1
+    size: { qLength: 1, sLength: 1 }
   },
   fourth: {
     name: 'fourth',
     type: 'basic',
     url: '/threejs/textures/water-texture.png',
-    qLength: 1,
-    sLength: 1
+    size: { qLength: 1, sLength: 1 }
   },
   fifth: {
     name: 'fifth',
     type: 'basic',
     url: '/threejs/textures/pit-texture.png',
-    qLength: 1,
-    sLength: 1
+    size: { qLength: 1, sLength: 1 }
   },
   specialFloor: {
     name: 'specialFloor',
     type: 'gltf',
     url: '/threejs/models/Dungeon_Modules/glb/Floor_Modular.glb',
+    size: { qLength: 1, sLength: 1 },
     meshName: 'Floor_Modular',
     normalizationScale: { x: 50, y: 130, z: 50 },
-    normalizationRotateX: Math.PI / 2,
-    qLength: 1,
-    sLength: 1
+    normalizationRotateX: Math.PI / 2
+  },
+  wallWithColumnMerged: {
+    name: 'wallWithColumnMerged',
+    type: 'gltf',
+    url: '/threejs/models/test_gltfs/instanceable-test-gltf.gltf',
+    size: { qLength: 1, sLength: 1 },
+    meshName: 'Column',
+    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
   }
 }
 
@@ -55,11 +57,10 @@ export function getTileModel (name) {
 }
 
 export function getTileDetails (name) {
-  const { qLength, sLength } = getTileModel(name)
+  const { size } = getTileModel(name)
   return {
     name,
-    qLength,
-    sLength
+    size
   }
 }
 

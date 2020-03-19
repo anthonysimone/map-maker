@@ -114,7 +114,6 @@
 import { mapGetters } from 'vuex'
 import { threeMap } from '@/helpers/services/threeMapService'
 
-import { generateTilesJson, generateCharactersJson } from '@/components/threejs/MapRenderer/mapHelpers'
 import { openElementFullscreen } from '@/components/threejs/MapRenderer/helpers'
 import { tweenActiveTileToggle } from '@/components/threejs/MapRenderer/tweens'
 
@@ -159,8 +158,8 @@ export default {
     },
     saveMap () {
       // Get all of the instanced mesh keys
-      let tilesJson = generateTilesJson(threeMap.tileInstancedMeshes)
-      let charactersJson = generateCharactersJson(threeMap.characterInstances)
+      let tilesJson = threeMap.generateTilesJson()
+      let charactersJson = threeMap.generateCharactersJson()
 
       this.$emit('saveMap', { tilesJson, charactersJson })
     }

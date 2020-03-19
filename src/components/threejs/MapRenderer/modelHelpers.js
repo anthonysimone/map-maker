@@ -32,6 +32,14 @@ export function getModelAnimations (key) {
   return null
 }
 
+export function getModelSize (key) {
+  if (models[key] && models[key].size) {
+    return models[key].size
+  }
+
+  return null
+}
+
 /*********************
  * Animation Helpers
  ********************/

@@ -2,11 +2,13 @@ export const models = {
   dad: {
     name: 'dad',
     url: '/threejs/models/90s_dad/scene.gltf',
+    size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.125, y: 0.125, z: 0.125 }
   },
   robot: {
     name: 'robot',
     url: '/threejs/models/RobotExpressive/RobotExpressive.glb',
+    size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
       {
@@ -91,11 +93,13 @@ export const models = {
   robotStatic: {
     name: 'robotStatic',
     url: '/threejs/models/RobotExpressive/RobotStatic.glb',
+    size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 }
   },
   goblin: {
     name: 'goblin',
     url: '/threejs/models/Goblin/Goblin.glb',
+    size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
       {
@@ -147,6 +151,7 @@ export const models = {
   bat: {
     name: 'bat',
     url: '/threejs/models/Monsters/Bat.glb',
+    size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
       {
@@ -181,6 +186,7 @@ export const models = {
   slime: {
     name: 'slime',
     url: '/threejs/models/Monsters/Slime.glb',
+    size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     normalizationRotation: -Math.PI / 2,
     animations: [
@@ -212,11 +218,13 @@ export const models = {
   dragon: {
     name: 'dragon',
     url: '/threejs/models/Monsters/Dragon.glb',
+    size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 }
   },
   skeleton: {
     name: 'skeleton',
     url: '/threejs/models/Monsters/Skeleton.glb',
+    size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
       {
@@ -249,21 +257,5 @@ export const models = {
         type: 'emote'
       }
     ]
-  },
-  // Dungeon pieces
-  tile: {
-    name: 'tile',
-    url: '/threejs/models/Dungeon_Modules/glb/Floor_Modular.glb',
-    normalizationScale: { x: 1, y: 1, z: 1 }
-  },
-  stairs: {
-    name: 'stairs',
-    url: '/threejs/models/Dungeon_Modules/glb/Stairs_Modular.glb',
-    normalizationScale: { x: 1, y: 1, z: 1 }
-  },
-  wall: {
-    name: 'wall',
-    url: '/threejs/models/Dungeon_Modules/glb/Wall_Modular.glb',
-    normalizationScale: { x: 1, y: 1, z: 1 }
   }
 }

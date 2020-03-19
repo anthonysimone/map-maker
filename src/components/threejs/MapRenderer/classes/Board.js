@@ -32,7 +32,7 @@ export class Board {
   }
 
   /**
-   * Convert any point to the q/s position.
+   * Convert any point to the q/s coords.
    */
   pointToCoords (point) {
     point.floor()
@@ -45,26 +45,31 @@ export class Board {
    */
   pointToRowCol (point) {
     const coords = this.pointToCoords(point)
-    return this.boardPositionToRowCol(coords)
+    return this.boardCoordsToRowCol(coords)
   }
 
   /**
-   * Convert q/s board position to base 0 row/column array index.
+   * Convert q/s board coords to base 0 row/column array index.
    */
-  boardPositionToRowCol ({ q, s }) {
+  boardCoordsToRowCol ({ q, s }) {
     const rowIndex = s + this.s / 2
     const colIndex = q + this.q / 2
     return { rowIndex, colIndex }
   }
 
   /**
-   * Get a cell by position.
+   * Get a cell by coords.
    *
-   * Returns undefined if no cell exists at given position.
+   * Returns undefined if no cell exists at given coords.
    */
-  getCellByPosition (qPos, sPos) {
-    const { rowIndex, colIndex } = this.boardPositionToRowCol({ q: qPos, s: sPos })
+  getCellByCoords (qPos, sPos) {
+    const { rowIndex, colIndex } = this.boardCoordsToRowCol({ q: qPos, s: sPos })
     return this.tiles[rowIndex] && this.tiles[rowIndex][colIndex]
+  }
+
+  getAnchorCell (qPos, sPos) {
+    const cell = this.getCellByCoords(qPos, sPos)
+    return cell.isAnchor ? cell : this.getCellByCoords(cell.anchorRef.q, cell.anchorRef.s)
   }
 
   /**
@@ -72,11 +77,49 @@ export class Board {
    */
   getCellByPoint (point) {
     const coords = this.pointToCoords(point)
-    return this.getCellByPosition(coords.q, coords.s)
+    return this.getCellByCoords(coords.q, coords.s)
+  }
+
+  /**
+   * Get tile position based on the board coords and tile size
+   */
+  getTilePositionFromBoardCoords (qPos, sPos, tileSize) {
+    const { qLength, sLength } = tileSize
+    return { x: qPos + qLength / 2, z: sPos + sLength / 2 }
+  }
+
+  /**
+   * Get tile position based on the board coords and tile size
+   */
+  getCharacterPositionFromBoardCoords (qPos, sPos, tileSize) {
+    const { qLength, sLength } = tileSize
+    return { x: qPos + qLength / 2, z: sPos + sLength / 2 }
+  }
+
+  /**
+   * Get anchor coords from tile position
+   */
+  getAnchorCoordsFromTilePosition (pos, tileSize) {
+    const { qLength, sLength } = tileSize
+    return { q: pos.x - qLength / 2, s: pos.z - sLength / 2 }
+  }
+
+  /**
+   * Get anchor coords from tile position
+   */
+  getAnchorCoordsFromCharacterPosition (pos, characterSize) {
+    const { qLength, sLength } = characterSize
+    return { q: pos.x - qLength / 2, s: pos.z - sLength / 2 }
   }
 
   /**********
+   *
+   *
+   *
    * METHODS
+   *
+   *
+   *
    *********/
 
   /**
@@ -109,41 +152,47 @@ export class Board {
     return this.tiles.map(row => row.map(cell => cell.walkable ? 1 : 0))
   }
 
+  updateEdges () {
+    this.edges = this.generateEdges()
+  }
+
   /**
    * Set occupied for board tile
    */
-  setBoardTile (qPos, sPos) {
-    const { rowIndex, colIndex } = this.boardPositionToRowCol({ q: qPos, s: sPos })
-    this.tiles[rowIndex][colIndex].hasTile = true
+  setBoardTile (qPos, sPos, size) {
+    const { qLength, sLength } = size
+    for (let s = sPos; s < sPos + sLength; s++) {
+      for (let q = qPos; q < qPos + qLength; q++) {
+        const cell = this.getCellByCoords(q, s)
+        const anchor = (qPos === q && sPos === s) ? null : { q: qPos, s: sPos }
+        cell.setHasTile(anchor)
+
+      }
+    }
   }
 
   /**
    * Set unoccupied for board tile
    */
-  unsetBoardTile (qPos, sPos) {
-    const { rowIndex, colIndex } = this.boardPositionToRowCol({ q: qPos, s: sPos })
-    this.tiles[rowIndex][colIndex].hasTile = false
+  unsetBoardTile (qPos, sPos, size) {
+    const { qLength, sLength } = size
+    for (let s = sPos; s < sPos + sLength; s++) {
+      for (let q = qPos; q < qPos + qLength; q++) {
+        const cell = this.getCellByCoords(q, s)
+        cell.unsetHasTile()
+      }
+    }
   }
 
   /**
    * Check to see if a cell can place a tile of a given size.
    */
   canPlaceTile (qPos, sPos, tileSize) {
-    // const { rowIndex, colIndex } = this.boardPositionToRowCol({ q: cell.q, s: cell.s })
     const { qLength, sLength } = tileSize
-
-    // for (let s = cell.s; s < cell.s + sLength; s++) {
-    //   for (let q = cell.q; q < cell.q + qLength; q++) {
-    //     const cell = this.getCellByPosition(q, s)
-    //     if (cell === undefined || cell.hasTile) {
-    //       return false
-    //     }
-    //   }
-    // }
 
     for (let s = sPos; s < sPos + sLength; s++) {
       for (let q = qPos; q < qPos + qLength; q++) {
-        const cell = this.getCellByPosition(q, s)
+        const cell = this.getCellByCoords(q, s)
         if (cell === undefined || cell.hasTile) {
           return false
         }

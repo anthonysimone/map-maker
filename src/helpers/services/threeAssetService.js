@@ -27,7 +27,6 @@ export let threeAssets = {
     // load unloaded gltf
     for (let item of Object.values(this.gltf)) {
       const loader = new GLTFLoader(manager)
-
       loader.load(item.url, gltf => {
         let model = gltf.scene
 
