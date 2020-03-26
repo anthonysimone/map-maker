@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import StarrySkyShader from '../../components/threejs/shaders/StarrySkyShader'
 
 // Internal dependencies
-import { setPan, deconstructModelStringId } from '@/components/threejs/MapRenderer/helpers'
+import { setPan, deconstructModelStringId, transformSize } from '@/components/threejs/MapRenderer/helpers'
 import { rotateModel, moveForward, moveBackward } from '@/components/threejs/MapRenderer/heroActions'
 import {
   getModelAnimations,
@@ -10,12 +10,13 @@ import {
   fadeToAction,
   fadeOutAction
 } from '@/components/threejs/MapRenderer/modelHelpers'
-import { getTilePosition, getTileRotation } from '@/components/threejs/MapRenderer/tileActions'
+import { getTilePosition, getTileRotation, getTileOrientation } from '@/components/threejs/MapRenderer/tileActions'
 
 // Helper objects
 let instanceMatrix = new THREE.Matrix4()
 let matrix = new THREE.Matrix4()
-let rotationMatrix = new THREE.Matrix4().makeRotationY(Math.PI / 2)
+let rotationMatrixQuarter = new THREE.Matrix4().makeRotationY(Math.PI / 2)
+let rotationMatrixHalf = new THREE.Matrix4().makeRotationY(Math.PI)
 let hideMatrix = new THREE.Matrix4().makeScale(0, 0, 0)
 
 /**
@@ -257,7 +258,7 @@ export let threeMap = {
   /**
    * Add instance
    */
-  addInstance ({ matrix, name, rotation }, coords) {
+  addInstance ({ matrix, name, rotation }, coords, orientation = 'default') {
     // Set this index's position
     const count = this.tileInstancedMeshes[name].count
     this.tileInstancedMeshes[name].mesh.setMatrixAt(count, matrix)
@@ -265,7 +266,8 @@ export let threeMap = {
     this.tileInstancedMeshes[name].mesh.userData[count.toString()] = {
       exists: true,
       isActive: false,
-      rotation: rotation || 0
+      rotation: rotation || 0,
+      orientation
     }
 
     // Increment our counter and the instanced mesh counter
@@ -273,18 +275,19 @@ export let threeMap = {
     this.tileInstancedMeshes[name].count++
 
     // Set the tile as occupied in the board class
-    const size = this.tileInstancedMeshes[name].size
+    const size = orientation === 'default' ? this.tileInstancedMeshes[name].size : transformSize(this.tileInstancedMeshes[name].size)
+    console.log('coords', coords.q, coords.s)
     this.boardClass.setBoardTile(coords.q, coords.s, size)
   },
 
   /**
    * Rotate instance
    */
-  rotateInstance ({ name, instanceId }) {
+  rotateInstance (name, instanceId, type) {
     this.tileInstancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix)
-    matrix.multiplyMatrices(instanceMatrix, rotationMatrix)
+    matrix.multiplyMatrices(instanceMatrix, type === 'half' ? rotationMatrixHalf : rotationMatrixQuarter)
     this.tileInstancedMeshes[name].mesh.setMatrixAt(instanceId, matrix)
-    this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].rotation = (this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].rotation + 1) % 4
+    this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].rotation = (this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].rotation + (type === 'half' ? 2 : 1)) % 4
     this.tileInstancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
   },
 
@@ -495,12 +498,15 @@ export let threeMap = {
       instanceKeys.forEach(instanceId => {
         if (this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].exists) {
           const vec = getTilePosition(name, instanceId, this.tileInstancedMeshes)
-          const coords = this.boardClass.getAnchorCoordsFromTilePosition(vec, this.tileInstancedMeshes[name].size)
+          const orientation = getTileOrientation(name, instanceId, this.tileInstancedMeshes)
+          const size = orientation === 'default' ? this.tileInstancedMeshes[name].size : transformSize(this.tileInstancedMeshes[name].size)
+          const coords = this.boardClass.getAnchorCoordsFromTilePosition(vec, size)
 
           let tile = {
             type: name,
             coords,
-            rotation: getTileRotation(name, instanceId, this.tileInstancedMeshes)
+            rotation: getTileRotation(name, instanceId, this.tileInstancedMeshes),
+            orientation
           }
 
           tiles.push(tile)

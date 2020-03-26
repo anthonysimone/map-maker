@@ -17,7 +17,8 @@ const state = {
   editMode: 'normal',
   editTool: 'select',
   creationTile: null,
-  addModelType: null
+  addModelType: null,
+  creationTileOrientation: 'default'
 }
 
 const getters = {
@@ -32,7 +33,8 @@ const getters = {
   editMode: state => state.editMode,
   editTool: state => state.editTool,
   creationTile: state => state.creationTile,
-  addModelType: state => state.addModelType
+  addModelType: state => state.addModelType,
+  creationTileOrientation: state => state.creationTileOrientation
 }
 
 const mutations = {
@@ -82,9 +84,13 @@ const mutations = {
   },
   setCreationTile: (state, tileDetails) => {
     state.creationTile = tileDetails
+    state.creationTileOrientation = 'default'
   },
   setAddModelType: (state, modelType) => {
     state.addModelType = modelType
+  },
+  setCreationTileOrientation: (state, orientation) => {
+    state.creationTileOrientation = orientation
   }
 }
 
@@ -128,6 +134,9 @@ const actions = {
   },
   setAddModelType: ({ commit }, modelType) => {
     commit('setAddModelType', modelType)
+  },
+  setCreationTileOrientation: ({ commit }, orientation) => {
+    commit('setCreationTileOrientation', orientation)
   }
 }
 

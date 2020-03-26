@@ -3,36 +3,56 @@
 
     <!-- Create tool contextual controls -->
     <div class="control creation-tile-type" v-if="editTool === 'create'">
-      <label>Creation Tile Type</label>
-      <div class="list-radios">
-        <label class="radio-label">
-          <input type="radio" value="first" checked name="creationTileName" v-model="creationTileName">
-          <span>Floor</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="second" name="creationTileName" v-model="creationTileName">
-          <span>Wall</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="third" name="creationTileName" v-model="creationTileName">
-          <span>Door</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="fourth" name="creationTileName" v-model="creationTileName">
-          <span>Water</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="fifth" name="creationTileName" v-model="creationTileName">
-          <span>Pit</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="specialFloor" name="creationTileName" v-model="creationTileName">
-          <span>Cool Floor</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" value="wallWithColumnMerged" name="creationTileName" v-model="creationTileName">
-          <span>Wall Merged</span>
-        </label>
+      <h3>Create new tile</h3>
+      <div class="control">
+        <label class="button-group-label">Tile type</label>
+        <div class="list-radios">
+          <label class="radio-label">
+            <input type="radio" value="first" checked name="creationTileName" v-model="creationTileName">
+            <span>Floor</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="second" name="creationTileName" v-model="creationTileName">
+            <span>Wall</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="third" name="creationTileName" v-model="creationTileName">
+            <span>Door</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="fourth" name="creationTileName" v-model="creationTileName">
+            <span>Water</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="fifth" name="creationTileName" v-model="creationTileName">
+            <span>Pit</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="specialFloor" name="creationTileName" v-model="creationTileName">
+            <span>Cool Floor</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="specialFloorLarge" name="creationTileName" v-model="creationTileName">
+            <span>Cool Floor 2x2</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="wallWithColumnMerged" name="creationTileName" v-model="creationTileName">
+            <span>Wall Merged</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="archDoorMerged" name="creationTileName" v-model="creationTileName">
+            <span>Arch Door Merged</span>
+          </label>
+        </div>
+      </div>
+      <div class="control">
+        <label class="button-group-label">Swap orientation</label>
+        <button @click="onChangeOrientation" :disabled="!creationTileName || isCreationTileSquare" class="button is-small" content="Change tile orientation" v-tippy="{ placement : 'bottom',  arrow: true }">
+          <span class="icon is-small">
+            <font-awesome-icon icon="undo"></font-awesome-icon>
+          </span>
+        </button>
+        <p class="description">For tiles that aren't squares, you can change the orientation that you place them on the map. Once placed, non-square tiles can only be rotated 180 degrees.</p>
       </div>
     </div>
 
@@ -80,7 +100,7 @@
       <h3>Selected Tile: {{ selectedTile }}</h3>
       <div class="control">
         <span class="selected-tile-label button-group-label">Rotate</span>
-        <button @click="onRotateTile" class="button is-small" content="Rotate counter clockwise" v-tippy="{ placement : 'bottom',  arrow: true }">
+        <button @click="onRotateTile" class="button is-small" :content="`Rotate counter clockwise ${isSelectedTileSquare ? 90 : 180} degrees`" v-tippy="{ placement : 'bottom',  arrow: true }">
           <span class="icon is-small">
             <font-awesome-icon icon="undo"></font-awesome-icon>
           </span>
@@ -167,7 +187,9 @@ export default {
     ...mapGetters('threeMap', [
       'selectedTile',
       'selectedModel',
-      'editTool'
+      'editTool',
+      'creationTile',
+      'creationTileOrientation'
     ]),
     selectedModelType () {
       let { modelType } = deconstructModelStringId(this.selectedModel)
@@ -215,6 +237,14 @@ export default {
     noSelection () {
       return !this.selectedTile && !this.selectedModel
     },
+    isSelectedTileSquare () {
+      let { name } = deconstructTileStringId(this.selectedTile)
+      const tileDetails = getTileDetails(name)
+      return tileDetails.size.qLength === tileDetails.size.sLength
+    },
+    isCreationTileSquare () {
+      return this.creationTile.size.qLength === this.creationTile.size.sLength
+    },
     creationTileName: {
       get () {
         return this.$store.state.threeMap.creationTile && this.$store.state.threeMap.creationTile.name
@@ -242,10 +272,13 @@ export default {
     }
   },
   methods: {
+    onChangeOrientation () {
+      this.$store.dispatch('threeMap/setCreationTileOrientation', this.creationTileOrientation === 'default' ? 'alternate' : 'default')
+    },
     // edit related methods
     onRotateTile () {
       let { name, instanceId } = deconstructTileStringId(this.selectedTile)
-      threeMap.rotateInstance({ name, instanceId })
+      threeMap.rotateInstance(name, instanceId, this.isSelectedTileSquare ? 'quarter' : 'half')
     },
     onRotateModel () {
       threeMap.rotateModel(this.selectedModelType, this.selectedModelInstanceNumber, false)

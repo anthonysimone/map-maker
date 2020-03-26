@@ -42,12 +42,29 @@ export const tileModels = {
     normalizationScale: { x: 50, y: 130, z: 50 },
     normalizationRotateX: Math.PI / 2
   },
+  specialFloorLarge: {
+    name: 'specialFloorLarge',
+    type: 'gltf',
+    url: '/threejs/models/Dungeon_Modules/glb/Floor_Modular.glb',
+    size: { qLength: 2, sLength: 2 },
+    meshName: 'Floor_Modular',
+    normalizationScale: { x: 100, y: 130, z: 100 },
+    normalizationRotateX: Math.PI / 2
+  },
   wallWithColumnMerged: {
     name: 'wallWithColumnMerged',
     type: 'gltf',
     url: '/threejs/models/test_gltfs/instanceable-test-gltf.gltf',
     size: { qLength: 1, sLength: 1 },
     meshName: 'Column',
+    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
+  },
+  archDoorMerged: {
+    name: 'archDoorMerged',
+    type: 'gltf',
+    url: '/threejs/models/test_gltfs/Arch_Door_Wide_completely_merged.gltf',
+    size: { qLength: 3, sLength: 1 },
+    meshName: 'Arch_Door',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
   }
 }

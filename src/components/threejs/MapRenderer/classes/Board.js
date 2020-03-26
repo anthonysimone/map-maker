@@ -166,7 +166,6 @@ export class Board {
         const cell = this.getCellByCoords(q, s)
         const anchor = (qPos === q && sPos === s) ? null : { q: qPos, s: sPos }
         cell.setHasTile(anchor)
-
       }
     }
   }

@@ -60,3 +60,10 @@ export function openElementFullscreen (elem) {
     elem.msRequestFullscreen()
   }
 }
+
+/**
+ * Transform size object to alternate orientation.
+ */
+export function transformSize (size) {
+  return { qLength: size.sLength, sLength: size.qLength }
+}

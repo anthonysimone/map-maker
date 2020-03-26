@@ -86,6 +86,10 @@ export function getTileRotation (name, instanceId, instancedMeshes) {
   return instancedMeshes[name].mesh.userData[instanceId.toString()].rotation
 }
 
+export function getTileOrientation (name, instanceId, instancedMeshes) {
+  return instancedMeshes[name].mesh.userData[instanceId.toString()].orientation
+}
+
 export function getSelectedTilePosition (selectedTile, instancedMeshes) {
   let {
     name,
@@ -97,9 +101,21 @@ export function getSelectedTilePosition (selectedTile, instancedMeshes) {
 export function hideRollover (rolloverMesh) {
   rolloverMesh.position.set(0, -2, 0)
   rolloverMesh.visible = false
+  rolloverMesh.userData.isValid = false
+  rolloverMesh.scale.setX(1)
+  rolloverMesh.scale.setZ(1)
 }
 
-export function showRollover (rolloverMesh, positionPoint) {
+export function showRollover (rolloverMesh, positionPoint, size) {
+  const { qLength, sLength } = size
+  rolloverMesh.scale.x = qLength
+  rolloverMesh.scale.z = sLength
+  if (qLength > 1) {
+    positionPoint.setX(positionPoint.x + (qLength - 1) / 2)
+  }
+  if (sLength > 1) {
+    positionPoint.setZ(positionPoint.z + (sLength - 1) / 2)
+  }
   rolloverMesh.position.copy(positionPoint)
   rolloverMesh.visible = true
 }
@@ -107,6 +123,7 @@ export function showRollover (rolloverMesh, positionPoint) {
 export function setRolloverIsValid (rolloverMesh, isValid) {
   rolloverMesh.material.color.r = isValid ? 0 : 1
   rolloverMesh.material.color.b = isValid ? 1 : 0
+  rolloverMesh.userData.isValid = isValid
 }
 
 // /**
