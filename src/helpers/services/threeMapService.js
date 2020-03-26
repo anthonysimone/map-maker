@@ -276,7 +276,6 @@ export let threeMap = {
 
     // Set the tile as occupied in the board class
     const size = orientation === 'default' ? this.tileInstancedMeshes[name].size : transformSize(this.tileInstancedMeshes[name].size)
-    console.log('coords', coords.q, coords.s)
     this.boardClass.setBoardTile(coords.q, coords.s, size)
   },
 
