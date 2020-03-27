@@ -300,8 +300,10 @@ export let threeMap = {
     this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].exists = false
     this.tileInstancedMeshes[name].mesh.instanceMatrix.needsUpdate = true
 
+    const orientation = this.tileInstancedMeshes[name].mesh.userData[instanceId.toString()].orientation
+
     // Unset the tile as occupied in the board class
-    const size = this.tileInstancedMeshes[name].size
+    const size = orientation === 'default' ? this.tileInstancedMeshes[name].size : transformSize(this.tileInstancedMeshes[name].size)
     this.boardClass.unsetBoardTile(coords.q, coords.s, size)
   },
 
