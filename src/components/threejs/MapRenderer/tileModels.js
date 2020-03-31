@@ -59,10 +59,10 @@ export const tileModels = {
     meshName: 'Column',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
   },
-  archDoorMerged: {
-    name: 'archDoorMerged',
+  archDoorWithFloorMerged: {
+    name: 'archDoorWithFloorMerged',
     type: 'gltf',
-    url: '/threejs/models/test_gltfs/Arch_Door_Wide_completely_merged.gltf',
+    url: '/threejs/models/test_gltfs/Arch_Door_Wide_With_Floor_completely_merged.gltf',
     size: { qLength: 3, sLength: 1 },
     meshName: 'Arch_Door',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }

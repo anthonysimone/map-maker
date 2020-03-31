@@ -40,8 +40,8 @@
             <span>Wall Merged</span>
           </label>
           <label class="radio-label">
-            <input type="radio" value="archDoorMerged" name="creationTileName" v-model="creationTileName">
-            <span>Arch Door Merged</span>
+            <input type="radio" value="archDoorWithFloorMerged" name="creationTileName" v-model="creationTileName">
+            <span>Arch Door With Floor Merged</span>
           </label>
         </div>
       </div>

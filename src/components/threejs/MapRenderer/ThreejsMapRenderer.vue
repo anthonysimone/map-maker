@@ -70,7 +70,7 @@ export default {
       instanceMatrix: new THREE.Matrix4(),
 
       // default values
-      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor', 'specialFloorLarge', 'wallWithColumnMerged', 'archDoorMerged'],
+      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor', 'specialFloorLarge', 'wallWithColumnMerged', 'archDoorWithFloorMerged'],
       usedCharacters: ['robot', 'slime', 'skeleton', 'goblin', 'bat']
     }
   },
