@@ -68,9 +68,10 @@ export default {
       transform: new THREE.Object3D(),
       matrix: new THREE.Matrix4(),
       instanceMatrix: new THREE.Matrix4(),
+      boardDepth: -0.1,
 
       // default values
-      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor', 'specialFloorLarge', 'wallWithColumnMerged', 'archDoorWithFloorMerged'],
+      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor', 'specialFloorLarge', 'wallWithColumnMerged', 'archDoorWithFloorMerged', 'cornerColumn', 'threeWayColumn', 'fourWayColumn', 'wallModular'],
       usedCharacters: ['robot', 'slime', 'skeleton', 'goblin', 'bat']
     }
   },
@@ -287,6 +288,8 @@ export default {
       }))
       gridGroup.add(plane)
 
+      gridGroup.position.y = this.boardDepth
+
       threeMap.scene.add(gridGroup)
       this.objects.push(plane)
     },
@@ -386,7 +389,7 @@ export default {
       // TODO: determine what to do with checkerboard
       const boardBase = new THREE.Mesh(threeMap.geometries.board, threeMap.materials.stage)
       boardBase.name = 'board-grid'
-      boardBase.position.y = -0.01
+      boardBase.position.y = this.boardDepth - 0.01
       boardBase.rotation.x = Math.PI * -0.5
       threeMap.boardGroup.add(boardBase)
 
@@ -438,7 +441,7 @@ export default {
             rotation += 1
           }
 
-          this.instanceMatrix.makeTranslation(tilePos.x, 0.125, tilePos.z)
+          this.instanceMatrix.makeTranslation(tilePos.x, 0, tilePos.z)
           this.matrix.makeRotationY(rotation * Math.PI / 2)
           this.instanceMatrix.multiply(this.matrix)
 
@@ -591,7 +594,7 @@ export default {
 
           // Set position for new tile
           this.transform.position.x = position.x
-          this.transform.position.y = 0.125
+          this.transform.position.y = 0
           this.transform.position.z = position.z
           this.transform.rotation.y = this.creationTileOrientation === 'default' ? 0 : Math.PI / 2
           this.transform.updateMatrix()

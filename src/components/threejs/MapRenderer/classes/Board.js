@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { Cell } from './Cell'
 
 // Helper vars
-const initialTileOffsetVector = new THREE.Vector3(0.5, 0.125, 0.5)
+const initialTileOffsetVector = new THREE.Vector3(0.5, 0, 0.5)
 
 export class Board {
   constructor (q, s) {

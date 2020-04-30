@@ -36,20 +36,18 @@ export const tileModels = {
   specialFloor: {
     name: 'specialFloor',
     type: 'gltf',
-    url: '/threejs/models/Dungeon_Modules/glb/Floor_Modular.glb',
+    url: '/threejs/models/good_tile_gltfs/floor_modular_normalized.glb',
     size: { qLength: 1, sLength: 1 },
     meshName: 'Floor_Modular',
-    normalizationScale: { x: 50, y: 130, z: 50 },
-    normalizationRotateX: Math.PI / 2
+    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
   },
   specialFloorLarge: {
     name: 'specialFloorLarge',
     type: 'gltf',
-    url: '/threejs/models/Dungeon_Modules/glb/Floor_Modular.glb',
+    url: '/threejs/models/good_tile_gltfs/floor_modular_normalized.glb',
     size: { qLength: 2, sLength: 2 },
     meshName: 'Floor_Modular',
-    normalizationScale: { x: 100, y: 130, z: 100 },
-    normalizationRotateX: Math.PI / 2
+    normalizationScale: { x: 1, y: 0.5, z: 1 }
   },
   wallWithColumnMerged: {
     name: 'wallWithColumnMerged',
@@ -62,9 +60,41 @@ export const tileModels = {
   archDoorWithFloorMerged: {
     name: 'archDoorWithFloorMerged',
     type: 'gltf',
-    url: '/threejs/models/test_gltfs/Arch_Door_Wide_With_Floor_completely_merged.gltf',
+    url: '/threejs/models/good_tile_gltfs/arch_door_3_wide_merged.glb',
     size: { qLength: 3, sLength: 1 },
     meshName: 'Arch_Door',
+    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
+  },
+  cornerColumn: {
+    name: 'cornerColumn',
+    type: 'gltf',
+    url: '/threejs/models/good_tile_gltfs/corner_column.glb',
+    size: { qLength: 1, sLength: 1 },
+    meshName: 'corner_column',
+    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
+  },
+  threeWayColumn: {
+    name: 'threeWayColumn',
+    type: 'gltf',
+    url: '/threejs/models/good_tile_gltfs/three_way_column.glb',
+    size: { qLength: 1, sLength: 1 },
+    meshName: 'three_way_column',
+    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
+  },
+  fourWayColumn: {
+    name: 'fourWayColumn',
+    type: 'gltf',
+    url: '/threejs/models/good_tile_gltfs/four_way_column.glb',
+    size: { qLength: 1, sLength: 1 },
+    meshName: 'four_way_column',
+    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
+  },
+  wallModular: {
+    name: 'wallModular',
+    type: 'gltf',
+    url: '/threejs/models/good_tile_gltfs/wall_modular.glb',
+    size: { qLength: 1, sLength: 1 },
+    meshName: 'wall_modular',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
   }
 }
@@ -131,7 +161,9 @@ export function createTileMesh (name, count) {
   if (tile.type === 'basic') {
     const geo = createBasicTileGeo()
     const mat = createBasicTileMaterialSync(tile.name)
-    return new THREE.InstancedMesh(geo, mat, count)
+    const mesh = new THREE.InstancedMesh(geo, mat, count)
+    mesh.position.y = -0.125 // half the height of the geo
+    return mesh
   } else if (tile.type === 'gltf') {
     let gltf = threeAssets.getLoadedGltf(tile.name)
     let meshName = getTileMeshName(tile.name)

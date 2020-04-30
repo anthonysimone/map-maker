@@ -43,6 +43,22 @@
             <input type="radio" value="archDoorWithFloorMerged" name="creationTileName" v-model="creationTileName">
             <span>Arch Door With Floor Merged</span>
           </label>
+          <label class="radio-label">
+            <input type="radio" value="cornerColumn" name="creationTileName" v-model="creationTileName">
+            <span>Corner Column</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="threeWayColumn" name="creationTileName" v-model="creationTileName">
+            <span>3-way Column</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="fourWayColumn" name="creationTileName" v-model="creationTileName">
+            <span>4-way Column</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" value="wallModular" name="creationTileName" v-model="creationTileName">
+            <span>Wall</span>
+          </label>
         </div>
       </div>
       <div class="control">

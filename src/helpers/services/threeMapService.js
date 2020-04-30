@@ -350,7 +350,7 @@ export let threeMap = {
 
     const size = getModelSize(modelKey)
     const charPos = this.boardClass.getCharacterPositionFromBoardCoords(coords.q, coords.s, size)
-    group.position.set(charPos.x, 0.25, charPos.z)
+    group.position.set(charPos.x, 0, charPos.z)
 
     group.userData.rotation = rotation
     if (rotation) {
