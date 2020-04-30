@@ -36,7 +36,7 @@ export const tileModels = {
   specialFloor: {
     name: 'specialFloor',
     type: 'gltf',
-    url: '/threejs/models/good_tile_gltfs/floor_modular_normalized.glb',
+    url: '/threejs/models/tiles/floor_modular_normalized.glb',
     size: { qLength: 1, sLength: 1 },
     meshName: 'Floor_Modular',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
@@ -44,23 +44,15 @@ export const tileModels = {
   specialFloorLarge: {
     name: 'specialFloorLarge',
     type: 'gltf',
-    url: '/threejs/models/good_tile_gltfs/floor_modular_normalized.glb',
+    url: '/threejs/models/tiles/floor_modular_normalized.glb',
     size: { qLength: 2, sLength: 2 },
     meshName: 'Floor_Modular',
     normalizationScale: { x: 1, y: 0.5, z: 1 }
   },
-  wallWithColumnMerged: {
-    name: 'wallWithColumnMerged',
-    type: 'gltf',
-    url: '/threejs/models/test_gltfs/instanceable-test-gltf.gltf',
-    size: { qLength: 1, sLength: 1 },
-    meshName: 'Column',
-    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
-  },
   archDoorWithFloorMerged: {
     name: 'archDoorWithFloorMerged',
     type: 'gltf',
-    url: '/threejs/models/good_tile_gltfs/arch_door_3_wide_merged.glb',
+    url: '/threejs/models/tiles/arch_door_3_wide_merged.glb',
     size: { qLength: 3, sLength: 1 },
     meshName: 'Arch_Door',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
@@ -68,7 +60,7 @@ export const tileModels = {
   cornerColumn: {
     name: 'cornerColumn',
     type: 'gltf',
-    url: '/threejs/models/good_tile_gltfs/corner_column.glb',
+    url: '/threejs/models/tiles/corner_column.glb',
     size: { qLength: 1, sLength: 1 },
     meshName: 'corner_column',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
@@ -76,7 +68,7 @@ export const tileModels = {
   threeWayColumn: {
     name: 'threeWayColumn',
     type: 'gltf',
-    url: '/threejs/models/good_tile_gltfs/three_way_column.glb',
+    url: '/threejs/models/tiles/three_way_column.glb',
     size: { qLength: 1, sLength: 1 },
     meshName: 'three_way_column',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
@@ -84,7 +76,7 @@ export const tileModels = {
   fourWayColumn: {
     name: 'fourWayColumn',
     type: 'gltf',
-    url: '/threejs/models/good_tile_gltfs/four_way_column.glb',
+    url: '/threejs/models/tiles/four_way_column.glb',
     size: { qLength: 1, sLength: 1 },
     meshName: 'four_way_column',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
@@ -92,7 +84,7 @@ export const tileModels = {
   wallModular: {
     name: 'wallModular',
     type: 'gltf',
-    url: '/threejs/models/good_tile_gltfs/wall_modular.glb',
+    url: '/threejs/models/tiles/wall_modular.glb',
     size: { qLength: 1, sLength: 1 },
     meshName: 'wall_modular',
     normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }

@@ -71,7 +71,7 @@ export default {
       boardDepth: -0.1,
 
       // default values
-      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor', 'specialFloorLarge', 'wallWithColumnMerged', 'archDoorWithFloorMerged', 'cornerColumn', 'threeWayColumn', 'fourWayColumn', 'wallModular'],
+      usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor', 'specialFloorLarge', 'archDoorWithFloorMerged', 'cornerColumn', 'threeWayColumn', 'fourWayColumn', 'wallModular'],
       usedCharacters: ['robot', 'slime', 'skeleton', 'goblin', 'bat']
     }
   },

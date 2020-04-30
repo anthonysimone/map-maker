@@ -1,13 +1,7 @@
 export const models = {
-  dad: {
-    name: 'dad',
-    url: '/threejs/models/90s_dad/scene.gltf',
-    size: { qLength: 1, sLength: 1 },
-    normalizationScale: { x: 0.125, y: 0.125, z: 0.125 }
-  },
   robot: {
     name: 'robot',
-    url: '/threejs/models/RobotExpressive/RobotExpressive.glb',
+    url: '/threejs/models/characters/RobotExpressive.glb',
     size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
@@ -90,15 +84,9 @@ export const models = {
       }
     ]
   },
-  robotStatic: {
-    name: 'robotStatic',
-    url: '/threejs/models/RobotExpressive/RobotStatic.glb',
-    size: { qLength: 1, sLength: 1 },
-    normalizationScale: { x: 0.2, y: 0.2, z: 0.2 }
-  },
   goblin: {
     name: 'goblin',
-    url: '/threejs/models/Goblin/Goblin.glb',
+    url: '/threejs/models/characters/Goblin.glb',
     size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
@@ -150,7 +138,7 @@ export const models = {
   },
   bat: {
     name: 'bat',
-    url: '/threejs/models/Monsters/Bat.glb',
+    url: '/threejs/models/characters/Bat.glb',
     size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [
@@ -185,7 +173,7 @@ export const models = {
   },
   slime: {
     name: 'slime',
-    url: '/threejs/models/Monsters/Slime.glb',
+    url: '/threejs/models/characters/Slime.glb',
     size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     normalizationRotation: -Math.PI / 2,
@@ -217,13 +205,13 @@ export const models = {
   },
   dragon: {
     name: 'dragon',
-    url: '/threejs/models/Monsters/Dragon.glb',
+    url: '/threejs/models/characters/Dragon.glb',
     size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 }
   },
   skeleton: {
     name: 'skeleton',
-    url: '/threejs/models/Monsters/Skeleton.glb',
+    url: '/threejs/models/characters/Skeleton.glb',
     size: { qLength: 1, sLength: 1 },
     normalizationScale: { x: 0.2, y: 0.2, z: 0.2 },
     animations: [

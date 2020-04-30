@@ -9,23 +9,23 @@
         <div class="list-radios">
           <label class="radio-label">
             <input type="radio" value="first" checked name="creationTileName" v-model="creationTileName">
-            <span>Floor</span>
+            <span>Flat Floor</span>
           </label>
           <label class="radio-label">
             <input type="radio" value="second" name="creationTileName" v-model="creationTileName">
-            <span>Wall</span>
+            <span>Flat Wall</span>
           </label>
           <label class="radio-label">
             <input type="radio" value="third" name="creationTileName" v-model="creationTileName">
-            <span>Door</span>
+            <span>Flat Door</span>
           </label>
           <label class="radio-label">
             <input type="radio" value="fourth" name="creationTileName" v-model="creationTileName">
-            <span>Water</span>
+            <span>Flat Water</span>
           </label>
           <label class="radio-label">
             <input type="radio" value="fifth" name="creationTileName" v-model="creationTileName">
-            <span>Pit</span>
+            <span>Flat Pit</span>
           </label>
           <label class="radio-label">
             <input type="radio" value="specialFloor" name="creationTileName" v-model="creationTileName">
@@ -36,12 +36,8 @@
             <span>Cool Floor 2x2</span>
           </label>
           <label class="radio-label">
-            <input type="radio" value="wallWithColumnMerged" name="creationTileName" v-model="creationTileName">
-            <span>Wall Merged</span>
-          </label>
-          <label class="radio-label">
             <input type="radio" value="archDoorWithFloorMerged" name="creationTileName" v-model="creationTileName">
-            <span>Arch Door With Floor Merged</span>
+            <span>Door</span>
           </label>
           <label class="radio-label">
             <input type="radio" value="cornerColumn" name="creationTileName" v-model="creationTileName">
