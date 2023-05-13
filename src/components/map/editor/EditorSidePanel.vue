@@ -93,6 +93,10 @@
           <input type="radio" value="bat" name="addModelType" v-model="addModelType">
           <span>Bat</span>
         </label>
+        <label class="radio-label">
+          <input type="radio" value="barrel" name="addModelType" v-model="addModelType">
+          <span>Barrel</span>
+        </label>
       </div>
     </div>
 

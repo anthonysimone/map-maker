@@ -72,7 +72,7 @@ export default {
 
       // default values
       usedTiles: ['first', 'second', 'third', 'fourth', 'fifth', 'specialFloor', 'specialFloorLarge', 'archDoorWithFloorMerged', 'cornerColumn', 'threeWayColumn', 'fourWayColumn', 'wallModular'],
-      usedCharacters: ['robot', 'slime', 'skeleton', 'goblin', 'bat']
+      usedCharacters: ['robot', 'slime', 'skeleton', 'goblin', 'bat', 'barrel']
     }
   },
   computed: {

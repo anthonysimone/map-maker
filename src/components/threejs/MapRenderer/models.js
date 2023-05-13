@@ -245,5 +245,11 @@ export const models = {
         type: 'emote'
       }
     ]
+  },
+  barrel: {
+    name: 'barrel',
+    url: '/threejs/models/characters/barrel.glb',
+    size: { qLength: 1, sLength: 1 },
+    normalizationScale: { x: 0.5, y: 0.5, z: 0.5 }
   }
 }

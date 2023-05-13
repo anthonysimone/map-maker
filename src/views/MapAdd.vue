@@ -42,7 +42,9 @@ export default {
       newWebglmap: {
         name: '',
         tilesWidth: null,
-        createdBy: ''
+        createdBy: '',
+        threejsTiles: [],
+        threejsCharacters: []
       }
     }
   },
